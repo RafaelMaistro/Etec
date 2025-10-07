@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Sistema de Agendamentos - Técnico</title>
+<style>
+/* mesmo estilo do professor */
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Inter,Segoe UI,Arial,Helvetica,sans-serif;color:#222;background:#f6f7f8}
+header{background:#b20000;border-bottom:1px solid #e6e9ee;padding:18px 24px;display:flex;align-items:center;justify-content:space-between}
+nav.top ul{list-style:none;display:flex;gap:18px}
+nav.top a{color:#222;text-decoration:none;font-weight:600}
+main{padding:24px;max-width:1200px;margin:28px auto}
+.container{background:#fff;border-radius:10px;padding:20px;box-shadow:0 6px 18px rgba(20,30,50,0.04)}
+.row{display:flex;gap:20px}
+.col-3{flex:0 0 27%}
+.col-7{flex:0 0 73%}
+h2{font-size:28px;margin-bottom:12px}
+table{width:100%;border-collapse:collapse;margin-top:12px}
+th,td{padding:12px;border-bottom:1px solid #eef2f6;text-align:left}
+th{background:#fbfcfd}
+button{padding:10px 14px;border-radius:8px;border:0;cursor:pointer}
+.btn-primary{background:#b20000;color:#fff}
+.btn-ghost{background:#f1f4f8;color:#222;border:1px solid #e6e9ee}
+.sidebar-card{background:#fff;border:1px solid #eef2f6;padding:14px;border-radius:8px}
+.small{font-size:13px;color:#667085}
+@media(max-width:900px){.row{flex-direction:column}.col-3,.col-7{flex:1}}
+section.screen{display:none}
+section.screen.active{display:block}
+</style>
+</head>
+<body>
+<header>
+  <div class="brand">
+    <div style="width:48px;height:48px;border-radius:8px;background:#0b4f8c;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800">ET</div>
+    <div>
+      <h1>ETEC Júlio de Mesquita</h1>
+      <div class="small">Sistema de Agendamentos — Técnico</div>
+    </div>
+  </div>
+  <nav class="top">
+    <ul>
+      <li><a href="#" data-screen="pedidos">Pedidos</a></li>
+      <li><a href="#" data-screen="materiais">Materiais</a></li>
+      <li><a href="#" data-screen="historico">Histórico</a></li>
+      <li><a href="#" data-screen="perfil">Perfil</a></li>
+    </ul>
+  </nav>
+</header>
+
+<main>
+  <!-- PEDIDOS -->
+  <section id="pedidos" class="screen active container">
+    <h2>Pedidos dos Professores</h2>
+    <div class="row">
+      <div class="col-7">
+        <table>
+          <thead><tr><th>Data</th><th>Hora</th><th>Lab</th><th>Professor</th><th>Ações</th></tr></thead>
+          <tbody>
+            <tr>
+              <td>2025-09-20</td><td>10:00</td><td>Lab.1</td><td>Prof. João</td>
+              <td><button class="btn-ghost" onclick="abrirPedido(1)">Visualizar</button></td>
+            </tr>
+            <tr>
+              <td>2025-09-20</td><td>11:00</td><td>Lab.2</td><td>Prof. Maria</td>
+              <td><button class="btn-ghost" onclick="abrirPedido(2)">Visualizar</button></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="col-3">
+        <div class="sidebar-card" id="pedidoDetalhe">
+          <h4>Detalhes do Pedido</h4>
+          <div class="small">Selecione um pedido para ver itens</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- MATERIAIS -->
+  <section id="materiais" class="screen container">
+    <h2>Materiais / Estoque</h2>
+    <div class="row">
+      <div class="col-7">
+        <table>
+          <thead><tr><th>Nome</th><th>Quantidade</th><th>Unidade</th></tr></thead>
+          <tbody>
+            <tr><td>Becker</td><td>10</td><td>un</td></tr>
+            <tr><td>Ácido clorídrico</td><td>5</td><td>lt</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="col-3">
+        <div class="sidebar-card">
+          <h4>Atualizar Estoque</h4>
+          <label>Nome</label><input type="text" id="matName"/>
+          <label>Quantidade</label><input type="text" id="matQtd"/>
+          <label>Unidade</label><input type="text" id="matUni"/>
+          <button class="btn-primary" onclick="adicionarMaterial()">Adicionar / Corrigir</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- HISTÓRICO -->
+  <section id="historico" class="screen container">
+    <h2>Histórico de Uso</h2>
+    <table>
+      <thead><tr><th>Data</th><th>Material</th><th>Quantidade</th><th>Usuário</th><th>Ação</th></tr></thead>
+      <tbody>
+        <tr><td>2025-09-01</td><td>Becker</td><td>2</td><td>Maria (Técnico)</td><td>Separado</td></tr>
+        <tr><td>2025-08-28</td><td>Ácido clorídrico</td><td>100mL</td><td>João (Professor)</td><td>Utilizado</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- PERFIL -->
+  <section id="perfil" class="screen container">
+    <h2>Perfil</h2>
+    <label>Nome</label><input type="text" value="Técnico Nome" />
+    <label>Email</label><input type="email" value="tecnico@email.com" />
+  </section>
+</main>
+
+<script>
+document.querySelectorAll('nav.top a').forEach(a=>{
+  a.addEventListener('click',e=>{
+    e.preventDefault();
+    const s = a.getAttribute('data-screen');
+    if(s) showScreen(s);
+  })
+})
+function showScreen(id){
+  document.querySelectorAll('section.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+function abrirPedido(id){
+  const box = document.getElementById('pedidoDetalhe');
+  box.innerHTML = `<h4>Pedido #${id}</h4><p class="small">Itens:</p><ul><li>Becker x3</li><li>Microscópio x1</li></ul><div style="margin-top:8px"><button class="btn-primary">Confirmar separação</button> <button class="btn-ghost">Marcar falta</button></div>`;
+}
+function adicionarMaterial(){alert('Estoque atualizado (mock)');}
+</script>
+</body>
+</html>
