@@ -1,0 +1,249 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Sistema de Agendamentos - Professor</title>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:Inter,Segoe UI,Arial,Helvetica,sans-serif;color:#222;background:#f6f7f8}
+    header{background:#b20000;border-bottom:1px solid #fff;padding:18px 24px;display:flex;align-items:center;justify-content:space-between}
+    .brand{display:flex;gap:12px;align-items:center}
+    .brand h1{font-size:20px;color:#fff}
+    nav.top ul{list-style:none;display:flex;gap:18px}
+    nav.top a{color:#fff;text-decoration:none;font-weight:600}
+    main{padding:24px;max-width:1200px;margin:28px auto}
+    .container{background:#fff;border-radius:10px;padding:20px;box-shadow:0 6px 18px rgba(8, 7, 8, 0.04)}
+    .row{display:flex;gap:20px}
+    .col-3{flex:0 0 27%}
+    .col-7{flex:0 0 73%}
+    h2{font-size:28px;margin-bottom:12px}
+    label{display:block;margin:10px 0 6px;font-weight:600}
+    input[type=text],select,textarea,input[type=date],input[type=time],input[type=email]{width:100%;padding:10px;border:1px solid #fff;border-radius:8px;background:#fff}
+    button{padding:10px 14px;border-radius:8px;border:0;cursor:pointer}
+    .btn-primary{background:#b20000;color:#fff}
+    .btn{color:#080505;}
+    table{width:100%;border-collapse:collapse;margin-top:12px}
+    th,td{padding:12px;border-bottom:1px solid #fff;text-align:left}
+    th{background:#fff}
+    .sidebar-card{background:#fff;border:1px solid #fff;padding:14px;border-radius:8px}
+    .small{font-size:13px;color:#fff}
+    @media(max-width:900px){.row{flex-direction:column}.col-3,.col-7{flex:1}}
+    section.screen{display:none}
+    section.screen.active{display:block}
+  </style>
+</head>
+<!-- VLibras Plugin -->
+<div vw class="enabled">
+  <div vw-access-button class="active"></div>
+  <div vw-plugin-wrapper>
+    <div class="vw-plugin-top-wrapper"></div>
+  </div>
+</div>
+
+<script src="https://vlibras.gov.br/app/vlibras-plugin.js"></script>
+<script>
+  new window.VLibras.Widget('https://vlibras.gov.br/app');
+</script>
+
+<body>
+<header>
+  <div class="brand">
+    <div style="width:48px;height:48px;border-radius:8px;background:#fff;color:#b20000;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:25px">ET</div>
+    <div>
+      <h1>ETEC Júlio de Mesquita</h1>
+      <div class="small">Sistema de Agendamentos — Professor</div>
+    </div>
+  </div>
+  <nav class="top">
+    <ul>
+      <li><a href="#" data-screen="dashboard">Agendamentos</a></li>
+      <li><a href="#" data-screen="agendamento">Agendar Experimento</a></li>
+      <li><a href="#" data-screen="kits">Kits</a></li>
+      <li><a href="#" data-screen="perfil">Perfil</a></li>
+    </ul>
+  </nav>
+</header>
+
+<main>
+  <!-- DASHBOARD -->
+  <section id="dashboard" class="screen active container">
+    <h2>Agendamentos</h2>
+    <div class="row">
+      <div class="col-7">
+        <h3>Meus Agendamentos</h3>
+        <table>
+          <thead><tr><th>Data</th><th>Hora</th><th>Lab</th><th>Status</th></tr></thead>
+          <tbody id="meusAgs">
+            <tr><td>2025-09-20</td><td>10:00</td><td>Lab. 1</td><td>Pendente</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="col-3">
+        <div class="sidebar-card">
+          <h4>Atalhos</h4>
+          <button class="btn-primary" onclick="showScreen('agendamento')">Novo Agendamento</button>
+          <button class="btn" onclick="showScreen('kits')">Gerenciar Kits</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- AGENDAMENTO -->
+  <section id="agendamento" class="screen container">
+    <h2>Agendamento de Experimento</h2>
+    <label>Laboratório</label>
+    <select id="labSelect">
+      <option>Lab. 1 (capacidade 2)</option>
+      <option>Lab. 2 (capacidade 1)</option>
+      <option>Lab. 3 (capacidade 3)</option>
+    </select>
+    <div style="display:flex;gap:10px;margin-top:10px">
+      <div style="flex:1">
+        <label>Data</label>
+        <input type="date" id="agData" />
+      </div>
+      <div style="flex:1">
+        <label>Horário</label>
+        <input type="time" id="agHora" />
+      </div>
+    </div>
+    <label>Usar Kit</label>
+    <select id="kitSelect">
+      <option value="kit1">Kit Reagentes</option>
+      <option value="kit2">Kit Montagem</option>
+    </select>
+    <label>Materiais (edição rápida)</label>
+    <textarea id="materiaisAg" rows="4">Becker x3, Ácido clorídrico 100mL</textarea>
+    <div style="margin-top:12px;display:flex;gap:8px">
+      <button class="btn-primary" onclick="criarAgendamento()">Salvar Solicitação</button>
+      <button class="btn" style="border:1px; border-color:#f6f7f8" onclick="cancelarAgendamento()">Cancelar</button>
+    </div>
+  </section>
+
+  <!-- KITS -->
+  <section id="kits" class="screen container">
+    <h2>Kits</h2>
+    <table id="kitsTabela">
+      <thead><tr><th>Nome</th><th>Materiais</th></tr></thead>
+      <tbody>
+        <tr><td>Kit Reagentes</td><td>Ácido clorídrico, Cloreto de sódio...</td></tr>
+        <tr><td>Kit Montagem</td><td>Bico de Bunsen, Suporte, Pinça...</td></tr>
+      </tbody>
+    </table>
+
+    <h3 style="margin-top:20px">Adicionar Novo Kit</h3>
+    <label>Nome do Kit</label>
+    <input type="text" id="novoKitNome" placeholder="Ex: Kit Biologia" />
+    <label>Materiais</label>
+    <textarea id="novoKitMateriais" rows="3" placeholder="Ex: Microscópio, Lâminas, Corante..."></textarea>
+    <button class="btn-primary" style="margin-top:10px" onclick="adicionarKit()">Adicionar Kit</button>
+  </section>
+
+  <!-- PERFIL -->
+  <section id="perfil" class="screen container">
+    <h2>Perfil</h2>
+    <label>Nome</label><input type="text" id="perfilNome" value="Prof. Nome" />
+    <label>Email</label><input type="email" id="perfilEmail" value="professor@email.com" />
+    <div style="margin-top:12px">
+      <button class="btn-primary" onclick="salvarPerfil()">Salvar Perfil</button>
+    </div>
+  </section>
+</main>
+
+<script>
+  // Navegação entre telas
+  document.querySelectorAll('nav.top a').forEach(a=>{
+    a.addEventListener('click', e=>{
+      e.preventDefault();
+      const s = a.getAttribute('data-screen');
+      if(s) showScreen(s);
+    });
+  });
+
+  function showScreen(id){
+    document.querySelectorAll('section.screen').forEach(s=>s.classList.remove('active'));
+    const el = document.getElementById(id);
+    if(el) el.classList.add('active');
+    window.scrollTo({top:0,behavior:'smooth'});
+  }
+
+  // Criar agendamento e atualizar a lista
+  function criarAgendamento(){
+    const d = document.getElementById('agData').value;
+    const h = document.getElementById('agHora').value;
+    const lab = document.getElementById('labSelect').value;
+    const kit = document.getElementById('kitSelect').value;
+    const materiais = document.getElementById('materiaisAg').value.trim();
+
+    if(!d || !h){
+      alert('Preencha data e horário');
+      return;
+    }
+
+    // Aqui poderia incluir validações extras, horário disponível, etc.
+
+    const tbody = document.getElementById('meusAgs');
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${d}</td><td>${h}</td><td>${lab}</td><td>Pendente</td>`;
+    tbody.appendChild(tr);
+
+    // Limpar campos após salvar
+    document.getElementById('agData').value = "";
+    document.getElementById('agHora').value = "";
+    document.getElementById('materiaisAg').value = "Becker x3, Ácido clorídrico 100mL";
+    document.getElementById('labSelect').selectedIndex = 0;
+    document.getElementById('kitSelect').selectedIndex = 0;
+
+    alert('Agendamento criado com sucesso!');
+    showScreen('dashboard');
+  }
+
+  // Cancelar agendamento - volta para dashboard limpando os campos
+  function cancelarAgendamento(){
+    // Limpa os campos do agendamento para evitar confusão
+    document.getElementById('agData').value = "";
+    document.getElementById('agHora').value = "";
+    document.getElementById('materiaisAg').value = "Becker x3, Ácido clorídrico 100mL";
+    document.getElementById('labSelect').selectedIndex = 0;
+    document.getElementById('kitSelect').selectedIndex = 0;
+
+    showScreen('dashboard');
+  }
+
+  // Adicionar novo kit na tabela
+  function adicionarKit(){
+    const nome = document.getElementById('novoKitNome').value.trim();
+    const mats = document.getElementById('novoKitMateriais').value.trim();
+    if(!nome || !mats){
+      alert('Preencha todos os campos');
+      return;
+    }
+    const tbody = document.querySelector('#kitsTabela tbody');
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${nome}</td><td>${mats}</td>`;
+    tbody.appendChild(tr);
+    document.getElementById('novoKitNome').value = "";
+    document.getElementById('novoKitMateriais').value = "";
+    alert('Kit adicionado!');
+  }
+
+  // Salvar perfil - mock simples com alerta
+  function salvarPerfil(){
+    const nome = document.getElementById('perfilNome').value.trim();
+    const email = document.getElementById('perfilEmail').value.trim();
+
+    if(!nome || !email){
+      alert('Preencha nome e email');
+      return;
+    }
+
+    // Poderia implementar envio para servidor aqui
+
+    alert('Perfil salvo com sucesso!');
+    showScreen('dashboard');
+  }
+</script>
+</body>
+</html>
+
