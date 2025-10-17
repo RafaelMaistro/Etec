@@ -1,0 +1,224 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Sistema de Agendamentos - Administrador</title>
+<style>
+/* mesmo estilo dos anteriores */
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Inter,Segoe UI,Arial,Helvetica,sans-serif;color:#222;background:#f6f7f8}
+header{background:#B20000;border-bottom:1px solid#ffffff;padding:18px 24px;display:flex;align-items:center;justify-content:space-between}
+.brand{display:flex;gap:12px;align-items:center}
+.brand h1{font-size:20px;color:#fff}
+nav.top ul{list-style:none;display:flex;gap:18px}
+nav.top a{color:#fff;text-decoration:none;font-weight:600}
+main{padding:24px;max-width:1200px;margin:28px auto}
+.container{background:#fff;border-radius:10px;padding:20px;box-shadow:0 6px 18px rgba(20,30,50,0.04)}
+.row{display:flex;gap:20px}
+.col-3{flex:0 0 27%}
+.col-7{flex:0 0 73%}
+h2{font-size:28px;margin-bottom:12px}
+label{display:block;margin:10px 0 6px;font-weight:600}
+input[type=text],input[type=email]{width:100%;padding:10px;border:1px solid #dde3ea;border-radius:8px;background:#fbfcfd}
+button{padding:10px 14px;border-radius:8px;border:0;cursor:pointer}
+.btn-primary{background:#B20000;color:#fff}
+.btn-ghost{background:#f1f4f8;color:#000;border:1px solid #e6e9ee}
+table{width:100%;border-collapse:collapse;margin-top:12px}
+th,td{padding:12px;border-bottom:1px solid #eef2f6;text-align:left}
+th{background:#fbfcfd}
+.sidebar-card{background:#fff;border:1px solid #eef2f6;padding:14px;border-radius:8px}
+.small{font-size:13px;color:#fff}
+@media(max-width:900px){.row{flex-direction:column}.col-3,.col-7{flex:1}}
+section.screen{display:none}
+section.screen.active{display:block}
+</style>
+</head>
+<!-- VLibras Plugin -->
+<div vw class="enabled">
+  <div vw-access-button class="active"></div>
+  <div vw-plugin-wrapper>
+    <div class="vw-plugin-top-wrapper"></div>
+  </div>
+</div>
+
+<script src="https://vlibras.gov.br/app/vlibras-plugin.js"></script>
+<script>
+  new window.VLibras.Widget('https://vlibras.gov.br/app');
+</script>
+
+<body>
+<header>
+  <div class="brand" style="display:flex;gap:10px;align-items:center">
+    <div style="width:48px;height:48px;border-radius:8px;background:#000;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800">ET</div>
+    <div>
+      <h1>ETEC Júlio de Mesquita</h1>
+      <div class="small">Sistema de Agendamentos — Administrador</div>
+    </div>
+  </div>
+  <nav class="top">
+    <ul>
+      <li><a href="#" data-screen="usuarios">Usuários</a></li>
+      <li><a href="#" data-screen="materiais">Materiais</a></li>
+      <li><a href="#" data-screen="historico">Histórico</a></li>
+      <li><a href="#" data-screen="perfil">Perfil</a></li>
+    </ul>
+  </nav>
+</header>
+
+<main>
+  <!-- USUÁRIOS -->
+  <section id="usuarios" class="screen active container">
+    <h2>Gerenciar Usuários</h2>
+    <div class="row">
+      <div class="col-7">
+        <table>
+          <thead><tr><th>Nome</th><th>Função</th><th>Email</th></tr></thead>
+          <tbody>
+            <tr><td>João Silva</td><td>Professor</td><td>joao@example.com</td></tr>
+            <tr><td>Maria Souza</td><td>Técnico</td><td>maria@example.com</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="col-3">
+        <div class="sidebar-card">
+          <h4>Novo Usuário</h4>
+          <label>Nome</label><input type="text" id="usuarioNome"/>
+          <label>Email</label><input type="email" id="usuarioEmail"/>
+          <label>Função</label>
+          <select id="usuarioFuncao">
+            <option>Professor</option>
+            <option>Técnico</option>
+            <option>Administrador</option>
+          </select>
+          <button class="btn-primary" id="btnAdicionarUsuario">Adicionar</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- MATERIAIS -->
+  <section id="materiais" class="screen container">
+    <h2>Gerenciar Materiais</h2>
+    <div class="row">
+      <div class="col-7">
+        <table>
+          <thead><tr><th>Nome</th><th>Quantidade</th><th>Unidade</th></tr></thead>
+          <tbody>
+            <tr><td>Becker</td><td>10</td><td>un</td></tr>
+            <tr><td>Ácido clorídrico</td><td>5</td><td>lt</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="col-3">
+        <div class="sidebar-card">
+          <h4>Adicionar / Atualizar</h4>
+          <label>Nome</label><input type="text" id="matName"/>
+          <label>Quantidade</label><input type="text" id="matQtd"/>
+          <label>Unidade</label><input type="text" id="matUni"/>
+          <button class="btn-primary" id="btnSalvarMaterial">Salvar</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- HISTÓRICO -->
+  <section id="historico" class="screen container">
+    <h2>Histórico de Uso</h2>
+    <table>
+      <thead><tr><th>Data</th><th>Material</th><th>Quantidade</th><th>Usuário</th><th>Ação</th></tr></thead>
+      <tbody>
+        <tr><td>2025-09-01</td><td>Becker</td><td>2</td><td>Maria (Técnico)</td><td>Separado</td></tr>
+        <tr><td>2025-08-28</td><td>Ácido clorídrico</td><td>100mL</td><td>João (Professor)</td><td>Utilizado</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- PERFIL -->
+  <section id="perfil" class="screen container">
+    <h2>Perfil</h2>
+    <label>Nome</label><input type="text" value="Admin Nome" />
+    <label>Email</label><input type="email" value="admin@email.com" />
+  </section>
+</main>
+
+<script>
+  // Troca de telas
+  document.querySelectorAll('nav.top a').forEach(a=>{
+    a.addEventListener('click', e=>{
+      e.preventDefault();
+      const s = a.getAttribute('data-screen');
+      if(s) showScreen(s);
+    });
+  });
+
+  function showScreen(id){
+    document.querySelectorAll('section.screen').forEach(s=>s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    window.scrollTo({top:0,behavior:'smooth'});
+  }
+
+  // Adicionar usuário
+  document.getElementById('btnAdicionarUsuario').addEventListener('click',()=>{
+  const nome = document.getElementById('usuarioNome').value.trim();
+  const email = document.getElementById('usuarioEmail').value.trim();
+  const funcao = document.getElementById('usuarioFuncao').value;
+
+  if(!nome || !email){
+    mostrarMensagem('Por favor, preencha Nome e Email.', 'erro');
+    return;
+  }
+
+  const tbody = document.querySelector('#usuarios tbody');
+  const tr = document.createElement('tr');
+  tr.innerHTML = `<td>${nome}</td><td>${funcao}</td><td>${email}</td>`;
+  tbody.appendChild(tr);
+
+  // Limpar campos
+  document.getElementById('usuarioNome').value = '';
+  document.getElementById('usuarioEmail').value = '';
+  document.getElementById('usuarioFuncao').selectedIndex = 0;
+
+  mostrarMensagem('Usuário adicionado com sucesso!');
+});
+
+
+  // Adicionar/Atualizar material
+  document.getElementById('btnSalvarMaterial').addEventListener('click', ()=>{
+    const nome = document.getElementById('matName').value.trim();
+    const qtd = document.getElementById('matQtd').value.trim();
+    const uni = document.getElementById('matUni').value.trim();
+
+    if(!nome || !qtd || !uni){
+      alert('Por favor, preencha todos os campos do material.');
+      return;
+    }
+
+    const tbody = document.querySelector('#materiais tbody');
+    let linhaExistente = null;
+
+    [...tbody.rows].forEach(row=>{
+      if(row.cells[0].textContent.toLowerCase() === nome.toLowerCase()){
+        linhaExistente = row;
+      }
+    });
+
+    if(linhaExistente){
+      linhaExistente.cells[1].textContent = qtd;
+      linhaExistente.cells[2].textContent = uni;
+      alert('Material atualizado com sucesso!');
+    } else {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td>${nome}</td><td>${qtd}</td><td>${uni}</td>`;
+      tbody.appendChild(tr);
+      alert('Material adicionado com sucesso!');
+    }
+
+    // Limpar campos
+    document.getElementById('matName').value = '';
+    document.getElementById('matQtd').value = '';
+    document.getElementById('matUni').value = '';
+  });
+</script>
+</body>
+</html>
