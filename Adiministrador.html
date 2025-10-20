@@ -5,50 +5,101 @@
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
 <title>Sistema de Agendamentos - Administrador</title>
 <style>
-/* mesmo estilo dos anteriores */
-*{box-sizing:border-box;margin:0;padding:0}
-body{font-family:Inter,Segoe UI,Arial,Helvetica,sans-serif;color:#222;background:#f6f7f8}
-header{background:#B20000;border-bottom:1px solid q#ffffff;padding:18px 24px;display:flex;align-items:center;justify-content:space-between}
-nav.top ul{list-style:none;display:flex;gap:18px}
-nav.top a{color:#222;text-decoration:none;font-weight:600}
-main{padding:24px;max-width:1200px;margin:28px auto}
-.container{background:#fff;border-radius:10px;padding:20px;box-shadow:0 6px 18px rgba(20,30,50,0.04)}
-.row{display:flex;gap:20px}
-.col-3{flex:0 0 27%}
-.col-7{flex:0 0 73%}
-h2{font-size:28px;margin-bottom:12px}
-label{display:block;margin:10px 0 6px;font-weight:600}
-input[type=text],input[type=email]{width:100%;padding:10px;border:1px solid #dde3ea;border-radius:8px;background:#fbfcfd}
-button{padding:10px 14px;border-radius:8px;border:0;cursor:pointer}
-.btn-primary{background:#B20000;color:#fff}
-.btn-ghost{background:#f1f4f8;color:#222;border:1px solid #e6e9ee}
-table{width:100%;border-collapse:collapse;margin-top:12px}
-th,td{padding:12px;border-bottom:1px solid #eef2f6;text-align:left}
-th{background:#fbfcfd}
-.sidebar-card{background:#fff;border:1px solid #eef2f6;padding:14px;border-radius:8px}
-.small{font-size:13px;color:#667085}
-@media(max-width:900px){.row{flex-direction:column}.col-3,.col-7{flex:1}}
-section.screen{display:none}
-section.screen.active{display:block}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: Inter, "Segoe UI", Arial, Helvetica, sans-serif;
+  color: #222;
+  background: #f6f7f8;
+}
+
+/* CABEÇALHO PADRÃO */
+header { width: 100%; position: absolute; top: 0; left: 0; }
+.topo {
+  background: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 18px 24px;
+  height: 80px;
+  width: 100%;
+  box-sizing: border-box;
+}
+.logos img { height: 55px; display: block; }
+
+.faixa-vinho {
+  width: 100%;
+  height: 60px;
+  background-color: #b20000;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding-right: 48px;
+  box-sizing: border-box;
+}
+.faixa-vinho nav ul {
+  list-style: none;
+  display: flex;
+  gap: 36px;
+  margin: 0;
+  padding: 0;
+}
+.faixa-vinho nav a {
+  color: #000000;
+  text-decoration: none;
+  font-size: 16px;
+  font-weight: 600;
+  transition: 0.15s;
+}
+.faixa-vinho nav a:hover { color: #ffffff; }
+
+/* CONTEÚDO */
+main { padding: 24px; max-width: 1200px; margin: 160px auto 40px; }
+.container { background: #fff; border-radius: 10px; padding: 20px; box-shadow: 0 6px 18px rgba(20,30,50,0.04); }
+.row { display: flex; gap: 20px; }
+.col-3 { flex: 0 0 27%; }
+.col-7 { flex: 0 0 73%; }
+h2 { font-size: 26px; margin-bottom: 12px; }
+
+label { display: block; margin: 10px 0 6px; font-weight: 600; }
+input[type=text], input[type=email] { width:100%; padding:10px; border:1px solid #dde3ea; border-radius:8px; background:#fbfcfd; }
+
+button { padding:10px 14px; border-radius:8px; border:0; cursor:pointer; }
+.btn-primary { background:#b20000; color:#fff; }
+.btn-ghost { background:#f1f4f8; color:#222; border:1px solid #e6e9ee; }
+
+table{ width:100%; border-collapse:collapse; margin-top:12px; }
+th,td{ padding:12px; border-bottom:1px solid #eef2f6; text-align:left; }
+th{ background:#fbfcfd; }
+
+.sidebar-card { background:#fff; border:1px solid #eef2f6; padding:14px; border-radius:8px; }
+.small { font-size:13px; color:#667085; }
+
+@media(max-width:900px){ .row{flex-direction:column} .col-3,.col-7{flex:1} }
+
+/* screens */
+section.screen { display: none; }
+section.screen.active { display: block; }
 </style>
 </head>
 <body>
+
 <header>
-  <div class="brand">
-    <div style="width:48px;height:48px;border-radius:8px;background:#0b4f8c;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800">ET</div>
-    <div>
-      <h1>ETEC Júlio de Mesquita</h1>
-      <div class="small">Sistema de Agendamentos — Administrador</div>
+  <div class="topo">
+    <div class="logos">
+      <img src="Screenshot 2025-10-20 075927.png" alt="Logos Etec e CPS">
     </div>
   </div>
-  <nav class="top">
-    <ul>
-      <li><a href="#" data-screen="usuarios">Usuários</a></li>
-      <li><a href="#" data-screen="materiais">Materiais</a></li>
-      <li><a href="#" data-screen="historico">Histórico</a></li>
-      <li><a href="#" data-screen="perfil">Perfil</a></li>
-    </ul>
-  </nav>
+
+  <div class="faixa-vinho">
+    <nav>
+      <ul>
+        <li><a href="#" data-screen="usuarios">Usuários</a></li>
+        <li><a href="#" data-screen="materiais">Materiais</a></li>
+        <li><a href="#" data-screen="historico">Histórico</a></li>
+        <li><a href="#" data-screen="perfil">Perfil</a></li>
+      </ul>
+    </nav>
+  </div>
 </header>
 
 <main>
@@ -65,18 +116,19 @@ section.screen.active{display:block}
           </tbody>
         </table>
       </div>
+
       <div class="col-3">
         <div class="sidebar-card">
           <h4>Novo Usuário</h4>
-          <label>Nome</label><input type="text"/>
-          <label>Email</label><input type="email"/>
+          <label>Nome</label><input type="text" id="novoUserNome" />
+          <label>Email</label><input type="email" id="novoUserEmail" />
           <label>Função</label>
-          <select>
+          <select id="novoUserFunc" style="width:100%;margin-top:6px;">
             <option>Professor</option>
             <option>Técnico</option>
             <option>Administrador</option>
           </select>
-          <button class="btn-primary">Adicionar</button>
+          <div style="margin-top:10px"><button class="btn-primary" onclick="adicionarUsuario()">Adicionar</button></div>
         </div>
       </div>
     </div>
@@ -89,19 +141,20 @@ section.screen.active{display:block}
       <div class="col-7">
         <table>
           <thead><tr><th>Nome</th><th>Quantidade</th><th>Unidade</th></tr></thead>
-          <tbody>
+          <tbody id="materiaisTbody">
             <tr><td>Becker</td><td>10</td><td>un</td></tr>
             <tr><td>Ácido clorídrico</td><td>5</td><td>lt</td></tr>
           </tbody>
         </table>
       </div>
+
       <div class="col-3">
         <div class="sidebar-card">
           <h4>Adicionar / Atualizar</h4>
-          <label>Nome</label><input type="text" id="matName"/>
-          <label>Quantidade</label><input type="text" id="matQtd"/>
-          <label>Unidade</label><input type="text" id="matUni"/>
-          <button class="btn-primary" onclick="adicionarMaterial()">Salvar</button>
+          <label>Nome</label><input type="text" id="matName" />
+          <label>Quantidade</label><input type="text" id="matQtd" />
+          <label>Unidade</label><input type="text" id="matUni" />
+          <div style="margin-top:8px"><button class="btn-primary" onclick="adicionarMaterial()">Salvar</button></div>
         </div>
       </div>
     </div>
@@ -124,23 +177,58 @@ section.screen.active{display:block}
     <h2>Perfil</h2>
     <label>Nome</label><input type="text" value="Admin Nome" />
     <label>Email</label><input type="email" value="admin@email.com" />
+    <div style="margin-top:12px"><button class="btn-primary">Salvar Perfil</button></div>
   </section>
 </main>
 
 <script>
-document.querySelectorAll('nav.top a').forEach(a=>{
-  a.addEventListener('click',e=>{
+/* navegação */
+document.querySelectorAll('.faixa-vinho nav a').forEach(link => {
+  link.addEventListener('click', e => {
     e.preventDefault();
-    const s = a.getAttribute('data-screen');
-    if(s) showScreen(s);
-  })
-})
+    const tela = link.getAttribute('data-screen');
+    if (!tela) return;
+    showScreen(tela);
+  });
+});
+
 function showScreen(id){
   document.querySelectorAll('section.screen').forEach(s=>s.classList.remove('active'));
-  document.getElementById(id).classList.add('active');
-  window.scrollTo({top:0,behavior:'smooth'});
+  const el = document.getElementById(id);
+  if(el) el.classList.add('active');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
 }
-function adicionarMaterial(){alert('Material atualizado (mock)');}
+
+/* ações mock */
+function adicionarMaterial(){
+  const nome = document.getElementById('matName').value.trim();
+  const qtd = document.getElementById('matQtd').value.trim();
+  const uni = document.getElementById('matUni').value.trim();
+  if(!nome || !qtd || !uni){ alert('Preencha todos os campos'); return; }
+  const tbody = document.getElementById('materiaisTbody');
+  const tr = document.createElement('tr');
+  tr.innerHTML = `<td>${nome}</td><td>${qtd}</td><td>${uni}</td>`;
+  tbody.appendChild(tr);
+  document.getElementById('matName').value = '';
+  document.getElementById('matQtd').value = '';
+  document.getElementById('matUni').value = '';
+  alert('Material salvo (mock)');
+}
+
+function adicionarUsuario(){
+  const nome = document.getElementById('novoUserNome').value.trim();
+  const email = document.getElementById('novoUserEmail').value.trim();
+  const func = document.getElementById('novoUserFunc').value;
+  if(!nome || !email){ alert('Preencha nome e email'); return; }
+  // apenas mock: adiciona na tabela
+  const tbody = document.querySelector('#usuarios tbody');
+  const tr = document.createElement('tr');
+  tr.innerHTML = `<td>${nome}</td><td>${func}</td><td>${email}</td>`;
+  tbody.appendChild(tr);
+  document.getElementById('novoUserNome').value = '';
+  document.getElementById('novoUserEmail').value = '';
+  alert('Usuário adicionado (mock)');
+}
 </script>
 </body>
 </html>
