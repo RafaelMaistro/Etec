@@ -5,48 +5,185 @@
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
 <title>Sistema de Agendamentos - Técnico</title>
 <style>
-/* mesmo estilo do professor */
-*{box-sizing:border-box;margin:0;padding:0}
-body{font-family:Inter,Segoe UI,Arial,Helvetica,sans-serif;color:#222;background:#f6f7f8}
-header{background:#b20000;border-bottom:1px solid #e6e9ee;padding:18px 24px;display:flex;align-items:center;justify-content:space-between}
-nav.top ul{list-style:none;display:flex;gap:18px}
-nav.top a{color:#222;text-decoration:none;font-weight:600}
-main{padding:24px;max-width:1200px;margin:28px auto}
-.container{background:#fff;border-radius:10px;padding:20px;box-shadow:0 6px 18px rgba(20,30,50,0.04)}
-.row{display:flex;gap:20px}
-.col-3{flex:0 0 27%}
-.col-7{flex:0 0 73%}
-h2{font-size:28px;margin-bottom:12px}
-table{width:100%;border-collapse:collapse;margin-top:12px}
-th,td{padding:12px;border-bottom:1px solid #eef2f6;text-align:left}
-th{background:#fbfcfd}
-button{padding:10px 14px;border-radius:8px;border:0;cursor:pointer}
-.btn-primary{background:#b20000;color:#fff}
-.btn-ghost{background:#f1f4f8;color:#222;border:1px solid #e6e9ee}
-.sidebar-card{background:#fff;border:1px solid #eef2f6;padding:14px;border-radius:8px}
-.small{font-size:13px;color:#667085}
-@media(max-width:900px){.row{flex-direction:column}.col-3,.col-7{flex:1}}
-section.screen{display:none}
-section.screen.active{display:block}
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+body {
+  font-family: Inter, Segoe UI, Arial, Helvetica, sans-serif;
+  color: #222;
+  background: #f6f7f8;
+}
+
+/* ===== CABEÇALHO ===== */
+header {
+  width: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+/* FAIXA BRANCA SUPERIOR */
+.topo {
+  background: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 18px 24px;
+  height: 80px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.logos img {
+  height: 55px;
+  display: block;
+}
+
+/* FAIXA VINHO */
+.faixa-vinho {
+  width: 100%;
+  height: 80px;
+  background-color: #b20000;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding-right: 50px;
+  box-sizing: border-box;
+}
+
+.faixa-vinho nav ul {
+  list-style: none;
+  display: flex;
+  gap: 40px;
+  margin: 0;
+  padding: 0;
+}
+
+.faixa-vinho nav a {
+  color: #000000;
+  text-decoration: none;
+  font-size: 16px;
+  font-weight: 600;
+  transition: 0.2s;
+}
+
+.faixa-vinho nav a:hover {
+  color: #ffffff;
+}
+
+/* ===== CONTEÚDO ===== */
+main {
+  padding: 24px;
+  max-width: 1200px;
+  margin: 160px auto 40px auto;
+}
+
+.container {
+  background: #fff;
+  border-radius: 10px;
+  padding: 20px;
+  box-shadow: 0 6px 18px rgba(20,30,50,0.04);
+}
+
+.row {
+  display: flex;
+  gap: 20px;
+}
+
+.col-3 {
+  flex: 0 0 27%;
+}
+
+.col-7 {
+  flex: 0 0 73%;
+}
+
+h2 {
+  font-size: 26px;
+  margin-bottom: 12px;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 12px;
+}
+
+th, td {
+  padding: 12px;
+  border-bottom: 1px solid #eef2f6;
+  text-align: left;
+}
+
+th {
+  background: #fbfcfd;
+}
+
+button {
+  padding: 10px 14px;
+  border-radius: 8px;
+  border: 0;
+  cursor: pointer;
+}
+
+.btn-primary {
+  background: #b20000;
+  color: #fff;
+}
+
+.btn-ghost {
+  background: #f1f4f8;
+  color: #222;
+  border: 1px solid #e6e9ee;
+}
+
+.sidebar-card {
+  background: #fff;
+  border: 1px solid #eef2f6;
+  padding: 14px;
+  border-radius: 8px;
+}
+
+.small {
+  font-size: 13px;
+  color: #667085;
+}
+
+@media(max-width:900px) {
+  .row {flex-direction: column;}
+  .col-3, .col-7 {flex: 1;}
+}
+
+/* ===== TROCA DE TELAS ===== */
+section.screen {
+  display: none;
+}
+section.screen.active {
+  display: block;
+}
 </style>
 </head>
 <body>
+
 <header>
-  <div class="brand">
-    <div style="width:48px;height:48px;border-radius:8px;background:#0b4f8c;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800">ET</div>
-    <div>
-      <h1>ETEC Júlio de Mesquita</h1>
-      <div class="small">Sistema de Agendamentos — Técnico</div>
+  <div class="topo">
+    <div class="logos">
+      <img src="Screenshot 2025-10-20 075927.png" alt="Logos Etec e CPS">
     </div>
   </div>
-  <nav class="top">
-    <ul>
-      <li><a href="#" data-screen="pedidos">Pedidos</a></li>
-      <li><a href="#" data-screen="materiais">Materiais</a></li>
-      <li><a href="#" data-screen="historico">Histórico</a></li>
-      <li><a href="#" data-screen="perfil">Perfil</a></li>
-    </ul>
-  </nav>
+
+  <div class="faixa-vinho">
+    <nav>
+      <ul>
+        <li><a href="#" data-screen="pedidos">Pedidos</a></li>
+        <li><a href="#" data-screen="materiais">Materiais</a></li>
+        <li><a href="#" data-screen="historico">Histórico</a></li>
+        <li><a href="#" data-screen="perfil">Perfil</a></li>
+      </ul>
+    </nav>
+  </div>
 </header>
 
 <main>
@@ -56,7 +193,9 @@ section.screen.active{display:block}
     <div class="row">
       <div class="col-7">
         <table>
-          <thead><tr><th>Data</th><th>Hora</th><th>Lab</th><th>Professor</th><th>Ações</th></tr></thead>
+          <thead>
+            <tr><th>Data</th><th>Hora</th><th>Lab</th><th>Professor</th><th>Ações</th></tr>
+          </thead>
           <tbody>
             <tr>
               <td>2025-09-20</td><td>10:00</td><td>Lab.1</td><td>Prof. João</td>
@@ -94,9 +233,9 @@ section.screen.active{display:block}
       <div class="col-3">
         <div class="sidebar-card">
           <h4>Atualizar Estoque</h4>
-          <label>Nome</label><input type="text" id="matName"/>
-          <label>Quantidade</label><input type="text" id="matQtd"/>
-          <label>Unidade</label><input type="text" id="matUni"/>
+          <label>Nome</label><input type="text" id="matName" style="width:100%;margin-bottom:6px;"/>
+          <label>Quantidade</label><input type="text" id="matQtd" style="width:100%;margin-bottom:6px;"/>
+          <label>Unidade</label><input type="text" id="matUni" style="width:100%;margin-bottom:10px;"/>
           <button class="btn-primary" onclick="adicionarMaterial()">Adicionar / Corrigir</button>
         </div>
       </div>
@@ -118,29 +257,44 @@ section.screen.active{display:block}
   <!-- PERFIL -->
   <section id="perfil" class="screen container">
     <h2>Perfil</h2>
-    <label>Nome</label><input type="text" value="Técnico Nome" />
-    <label>Email</label><input type="email" value="tecnico@email.com" />
+    <label>Nome</label><input type="text" value="Técnico Nome" style="width:100%;margin-bottom:10px;"/>
+    <label>Email</label><input type="email" value="tecnico@email.com" style="width:100%;margin-bottom:10px;"/>
   </section>
 </main>
 
 <script>
-document.querySelectorAll('nav.top a').forEach(a=>{
-  a.addEventListener('click',e=>{
+/* Alternar entre as seções */
+document.querySelectorAll('.faixa-vinho nav a').forEach(link => {
+  link.addEventListener('click', e => {
     e.preventDefault();
-    const s = a.getAttribute('data-screen');
-    if(s) showScreen(s);
-  })
-})
-function showScreen(id){
-  document.querySelectorAll('section.screen').forEach(s=>s.classList.remove('active'));
-  document.getElementById(id).classList.add('active');
-  window.scrollTo({top:0,behavior:'smooth'});
-}
-function abrirPedido(id){
+    const tela = link.getAttribute('data-screen');
+    document.querySelectorAll('section.screen').forEach(sec => sec.classList.remove('active'));
+    document.getElementById(tela).classList.add('active');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+});
+
+/* Exemplo de função para abrir pedido */
+function abrirPedido(id) {
   const box = document.getElementById('pedidoDetalhe');
-  box.innerHTML = `<h4>Pedido #${id}</h4><p class="small">Itens:</p><ul><li>Becker x3</li><li>Microscópio x1</li></ul><div style="margin-top:8px"><button class="btn-primary">Confirmar separação</button> <button class="btn-ghost">Marcar falta</button></div>`;
+  box.innerHTML = `
+    <h4>Pedido #${id}</h4>
+    <p class="small">Itens:</p>
+    <ul>
+      <li>Becker x3</li>
+      <li>Microscópio x1</li>
+    </ul>
+    <div style="margin-top:8px">
+      <button class="btn-primary">Confirmar separação</button>
+      <button class="btn-ghost">Marcar falta</button>
+    </div>
+  `;
 }
-function adicionarMaterial(){alert('Estoque atualizado (mock)');}
+
+/* Mock de atualização de material */
+function adicionarMaterial() {
+  alert('Estoque atualizado com sucesso!');
+}
 </script>
 </body>
 </html>
