@@ -1,0 +1,544 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Sistema de Agendamentos - Técnico (Materiais)</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: Inter, "Segoe UI", Arial, Helvetica, sans-serif; color: #222; background: #f6f7f8; line-height: 1.35; }
+    header { width: 100%; position: fixed; top: 0; left: 0; z-index: 50; }
+    .topo { background: #fff; display: flex; align-items: center; justify-content: flex-start; padding: 14px 20px; height: 90px; border-bottom: 1px solid #eee; }
+    .logos img { height: 90px; display: block; }
+    .faixa-vinho { background: #b20000; color: #fff; height: 52px; display: flex; align-items: center; justify-content: flex-end; padding-right: 28px; }
+    .faixa-vinho nav ul { display:flex; gap:18px; list-style:none; padding-right:6px; }
+    .faixa-vinho nav a { color:#fff; text-decoration:none; font-weight:600; cursor:pointer; padding:8px; border-radius:8px; }
+    .faixa-vinho nav a:hover { background:rgba(255,255,255,0.06); }
+    main {max-width:1180px;margin:140px auto 80px;padding:16px}
+
+    .container { background:#fff; border-radius:10px; padding:18px; box-shadow:0 6px 18px rgba(20,30,50,0.04); margin-bottom:18px; }
+    h2 { font-size:20px; margin-bottom:10px; }
+    .tabs { display:flex; gap:8px; margin-bottom:12px; }
+    .tab { padding:8px 12px; border-radius:8px; cursor:pointer; border:1px solid #eee; background:#f9fafb; font-weight:700; }
+    .tab.active { background:#b20000; color:#fff; border-color:transparent; }
+    .flex { display:flex; gap:18px; align-items:flex-start; }
+    .col { flex:1; }
+    .col-3 { flex:0 0 320px; }
+    table { width:100%; border-collapse:collapse; margin-top:8px; }
+    th, td { padding:8px; border-bottom:1px solid #eef2f6; text-align:left; font-size:14px; }
+    th { background:#fbfcfd; }
+    .btn { padding:7px 10px; border-radius:8px; border:0; cursor:pointer; font-weight:600; transition:0.2s; }
+    .btn:hover { opacity:0.85; transform:scale(1.05); }
+    .btn-primary { background:#b20000; color:#fff; border:1px solid #a00000; }
+    .btn-ghost { background:#f1f4f8; color:#222; border:1px solid #e6e9ee; }
+    .btn-sm { padding:6px 8px; font-size:13px; border-radius:6px; }
+    .sidebar-card { background:#fff; border:1px solid #eef2f6; padding:12px; border-radius:8px; }
+    label { display:block; font-size:13px; margin:8px 0 4px; }
+    input[type=text], select, textarea { width:100%; padding:8px; border-radius:6px; border:1px solid #ddd; font-size:14px; }
+    textarea { min-height:88px; resize:vertical; }
+    .section-title { display:flex; align-items:center; justify-content:space-between; gap:12px; }
+    .badge { background:#eef6ff; color:#0b63b8; padding:4px 8px; border-radius:999px; font-size:13px; }
+    .muted { color:#667085; font-size:13px; }
+    .actions { display:flex; gap:6px; }
+    .category-header { display:flex; align-items:center; justify-content:space-between; margin-top:10px; }
+    @media(max-width:980px) { .flex { flex-direction:column; } .col-3 { flex:1; } }
+    /* Modal */
+    .modal-backdrop { position:fixed; inset:0; background:rgba(0,0,0,0.45); display:none; align-items:center; justify-content:center; z-index:200; }
+    .modal { background:#fff; border-radius:10px; padding:18px; min-width:320px; max-width:680px; box-shadow:0 10px 30px rgba(0,0,0,0.2); }
+    .modal h3 { margin-bottom:8px; }
+    .modal .footer { display:flex; justify-content:flex-end; gap:8px; margin-top:12px; }
+    .top-actions { display:flex; gap:8px; align-items:center; }
+    .add-button { display:inline-flex; align-items:center; gap:8px; }
+    /* Pedidos specific */
+    .inner-tabs { display:flex; gap:8px; margin-bottom:12px; border-bottom:1px solid #f0f3f6; padding-bottom:8px; }
+    .inner-tab { padding:6px 10px; border-radius:6px; cursor:pointer; background:#f8f9fb; border:1px solid #eee; font-weight:600; }
+    .inner-tab.active { background:#b20000; color:#fff; border-color:transparent; }
+    .pedido-card { border:1px solid #eef2f6; border-radius:8px; padding:10px; margin-bottom:10px; background:#fff; }
+    .pedido-header { display:flex; justify-content:space-between; align-items:center; gap:12px; }
+    .small { font-size:13px; color:#667085; }
+    .items-list { margin-top:8px; }
+    .items-list li { margin-bottom:4px; }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="topo">
+      <div class="logos" style="margin-right:18px">
+        <img src="https://i.ibb.co/fVS0Zjm5/imagem-2025-11-10-082221609.png" alt="Logo ETEC e CPS">
+      </div>
+      <div style="flex:1">
+        <strong>Sistema de Agendamentos - Técnico</strong>
+        <div class="muted">Painel de Materiais — Vidrarias e Reagentes</div>
+      </div>
+    </div>
+
+    <div class="faixa-vinho">
+      <nav>
+        <ul>
+          <li><a href="#" data-screen="materiais">Materiais</a></li>
+          <li><a href="#" data-screen="pedidos">Pedidos</a></li>
+          <li><a href="#" data-screen="historico">Histórico</a></li>
+          <li><a href="#" data-screen="perfil">Perfil</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <!-- Materiais -->
+    <section id="materiais" class="container">
+      <div class="section-title">
+        <h2>Materiais — Vidrarias & Reagentes</h2>
+        <div class="top-actions">
+          <span class="badge" id="totalEstoque">Estoque: 0</span>
+          <span class="badge" id="totalUso" style="background:#fff;color:#b20000;border:1px solid #f3d7d7;margin-left:8px">Em Uso: 0</span>
+        </div>
+      </div>
+
+      <div class="tabs">
+        <div class="tab active" data-tab="estoque" onclick="switchTab('estoque')">Estoque</div>
+        <div class="tab" data-tab="uso" onclick="switchTab('uso')">Em uso</div>
+      </div>
+
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+        <div class="muted">Visualização: <strong id="current-view-label">Estoque</strong></div>
+        <div id="addBtnWrapper"></div>
+      </div>
+
+      <div id="tab-conteudo"></div>
+
+      <div class="flex" style="margin-top:14px">
+        <div class="col">
+          <div class="sidebar-card">
+            <h4>Pesquisar e Filtros</h4>
+            <label>Buscar por nome</label>
+            <input id="search" type="text" placeholder="Buscar nome..." oninput="renderCurrentTab()">
+            <div style="height:8px"></div>
+            <label>Filtrar por categoria</label>
+            <select id="filterTipo" onchange="renderCurrentTab()">
+              <option value="tudo">Tudo</option>
+              <option value="vidraria">Vidraria</option>
+              <option value="reagente">Reagente</option>
+            </select>
+            <div style="height:10px"></div>
+            <div class="muted">Use a busca ou o filtro para encontrar itens rapidamente.</div>
+          </div>
+        </div>
+
+        <div class="col-3">
+          <div class="sidebar-card">
+            <h4>Reportar Problema</h4>
+            <textarea id="reportText" placeholder="Quebrou 1 Becker, falta de Proveta..."></textarea>
+            <div class="footer" style="margin-top:8px;display:flex;justify-content:flex-end;gap:6px">
+              <button class="btn btn-ghost" onclick="limparRelato()">Limpar</button>
+              <button class="btn btn-primary" onclick="enviarRelato()">Enviar</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Pedidos -->
+    <section id="pedidos" class="container" style="display:none">
+      <div class="section-title">
+        <h2>Pedidos — Separação de Kits</h2>
+        <div class="top-actions">
+          <span class="badge" id="countPendentes">Pendentes: 0</span>
+          <span class="badge" id="countSeparados" style="background:#fff;color:#b20000;border:1px solid #f3d7d7;margin-left:8px">Separados: 0</span>
+        </div>
+      </div>
+
+      <!-- filtros e abas internas -->
+      <div style="display:flex;gap:10px;align-items:center;margin-bottom:10px">
+        <div class="inner-tabs" id="innerTabs">
+          <div class="inner-tab active" data-inner="pendentes" onclick="switchInnerTab('pendentes')">Pendentes</div>
+          <div class="inner-tab" data-inner="separados" onclick="switchInnerTab('separados')">Separados</div>
+        </div>
+
+        <div style="margin-left:auto;display:flex;gap:8px;align-items:center">
+          <label class="small" style="margin-right:6px">Laboratório</label>
+          <select id="filterLab" onchange="renderPedidos()">
+            <option value="todos">Todos</option>
+            <option value="1">Laboratório 1</option>
+            <option value="2">Laboratório 2</option>
+            <option value="3">Laboratório 3</option>
+          </select>
+          <input id="searchPedidos" type="text" placeholder="Buscar por professor..." oninput="renderPedidos()" style="margin-left:8px;padding:7px;border-radius:6px;border:1px solid #ddd">
+        </div>
+      </div>
+
+      <div id="pedidosConteudo"></div>
+    </section>
+
+    <!-- Histórico -->
+    <section id="historico" class="container" style="display:none">
+      <h2>Histórico</h2>
+    </section>
+
+    <!-- Perfil -->
+    <section id="perfil" class="container" style="display:none">
+      <h2>Perfil</h2>
+    </section>
+  </main>
+
+  <!-- Modal Pedido -->
+  <div id="modalBackdrop" class="modal-backdrop" onclick="closeModal(event)">
+    <div class="modal" onclick="event.stopPropagation()">
+      <h3 id="modalTitle">Detalhes do Pedido</h3>
+      <div id="modalBody"></div>
+      <div class="footer">
+        <button class="btn btn-ghost" onclick="closeModal()">Fechar</button>
+        <button id="modalToggleStatusBtn" class="btn btn-primary" onclick="">Marcar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal material (reaproveitado) -->
+  <div id="materialModalBackdrop" class="modal-backdrop" onclick="closeMaterialModal(event)">
+    <div class="modal" onclick="event.stopPropagation()">
+      <h3 id="materialModalTitle">Editar item</h3>
+      <label>Categoria</label>
+      <select id="modalTipo">
+        <option value="vidraria">Vidraria</option>
+        <option value="reagente">Reagente</option>
+      </select>
+      <label>Nome</label>
+      <input id="modalNome" type="text">
+      <div style="display:flex;gap:8px;margin-top:6px">
+        <div style="flex:1">
+          <label>Quantidade</label>
+          <input id="modalQtdNum" type="text">
+        </div>
+        <div style="width:120px">
+          <label>Unidade</label>
+          <input id="modalQtdUn" type="text" placeholder="un / mL / g / caixa">
+        </div>
+      </div>
+      <div class="footer">
+        <button class="btn btn-ghost" onclick="closeMaterialModal()">Cancelar</button>
+        <button class="btn btn-primary" onclick="saveModal()">Salvar</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /* ---------- helpers e dados de materiais (seu código anterior) ---------- */
+    function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2,8); }
+    const STORAGE_KEY_MATERIAIS = 'materiais_etec_v3';
+    function saveData(i) { localStorage.setItem(STORAGE_KEY_MATERIAIS, JSON.stringify(i)); }
+    function loadData() { try { const r = localStorage.getItem(STORAGE_KEY_MATERIAIS); return r ? JSON.parse(r) : null; } catch(e) { return null; } }
+    const defaultItems = [
+      { id: uid(), tipo: 'vidraria', nome: 'Béquer 100 mL', qtdNum: '3', qtdUn: 'un', uso: false },
+      { id: uid(), tipo: 'reagente', nome: 'Ácido clorídrico 37%', qtdNum: '5', qtdUn: 'L', uso: false }
+    ];
+    let items = loadData() || defaultItems.slice();
+    saveData(items);
+    let currentTab = 'estoque', editId = null, modalMode = 'edit';
+
+    function switchTab(tab) {
+      currentTab = tab;
+      document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
+      document.getElementById('current-view-label').innerText = (tab === 'estoque') ? 'Estoque' : 'Em uso';
+      renderAddButton();
+      renderCurrentTab();
+    }
+
+    function updateCounters() {
+      const e = items.filter(i => !i.uso).length, u = items.filter(i => i.uso).length;
+      document.getElementById('totalEstoque').innerText = `Estoque: ${e}`;
+      document.getElementById('totalUso').innerText = `Em Uso: ${u}`;
+    }
+
+    function renderAddButton() {
+      const w = document.getElementById('addBtnWrapper'); w.innerHTML = '';
+      if (currentTab === 'estoque') {
+        const b = document.createElement('button');
+        b.className = 'btn btn-primary add-button';
+        b.innerText = ' Adicionar item';
+        b.onclick = () => openAddModal();
+        w.appendChild(b);
+      }
+    }
+
+    function renderCurrentTab() {
+      const c = document.getElementById('tab-conteudo'); c.innerHTML = '';
+      const search = document.getElementById('search').value.trim().toLowerCase();
+      const filter = document.getElementById('filterTipo').value;
+      const byUso = (currentTab === 'uso');
+      ['vidraria', 'reagente'].forEach(tipo => {
+        if (filter !== 'tudo' && filter !== tipo) return;
+        const section = document.createElement('div');
+        const header = document.createElement('div'); header.className = 'category-header';
+        header.innerHTML = `<div style="font-weight:700">${tipo.charAt(0).toUpperCase() + tipo.slice(1)}</div>`;
+        section.appendChild(header);
+        const table = document.createElement('table');
+        table.innerHTML = '<thead><tr><th>Nome</th><th>Quantidade</th><th style="width:170px">Ações</th></tr></thead>';
+        const tb = document.createElement('tbody');
+        const list = items.filter(i => i.tipo === tipo && i.uso === byUso && (search === '' || (i.nome||'').toLowerCase().includes(search)));
+        if (list.length === 0) { tb.innerHTML = '<tr><td colspan="3" class="muted">Sem itens</td></tr>'; }
+        else {
+          list.forEach(it => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+              <td>${it.nome}</td>
+              <td>${it.qtdNum} ${it.qtdUn}</td>
+              <td>
+                <div class="actions">
+                  <button class="btn btn-sm btn-ghost" title="${it.uso ? 'Mover para Estoque' : 'Mover para Uso'}" onclick="toggleUso('${it.id}')">🔄</button>
+                  <button class="btn btn-sm btn-ghost" title="Editar" onclick="openEditModal('${it.id}')">✏️</button>
+                  ${currentTab === 'estoque' ? `<button class="btn btn-sm btn-ghost" title="Excluir" onclick="excluir('${it.id}')">🗑️</button>` : ''}
+                </div>
+              </td>`;
+            tb.appendChild(tr);
+          });
+        }
+        table.appendChild(tb); section.appendChild(table); c.appendChild(section);
+      });
+      updateCounters();
+    }
+
+    function openAddModal() {
+      modalMode = 'add'; editId = null;
+      document.getElementById('materialModalTitle').innerText = 'Adicionar item (Estoque)';
+      document.getElementById('modalTipo').value = 'vidraria';
+      document.getElementById('modalNome').value = '';
+      document.getElementById('modalQtdNum').value = '';
+      document.getElementById('modalQtdUn').value = 'un';
+      document.getElementById('materialModalBackdrop').style.display = 'flex';
+    }
+
+    function openEditModal(id) {
+      const it = items.find(x => x.id === id); if (!it) return alert('Item não encontrado');
+      modalMode = 'edit'; editId = id;
+      document.getElementById('materialModalTitle').innerText = 'Editar item';
+      document.getElementById('modalTipo').value = it.tipo;
+      document.getElementById('modalNome').value = it.nome;
+      document.getElementById('modalQtdNum').value = it.qtdNum;
+      document.getElementById('modalQtdUn').value = it.qtdUn;
+      document.getElementById('materialModalBackdrop').style.display = 'flex';
+    }
+
+    function closeMaterialModal(e) {
+      if (e && e.type === 'click' && e.target && e.target.id !== 'materialModalBackdrop') return;
+      document.getElementById('materialModalBackdrop').style.display = 'none'; editId = null; modalMode = 'edit';
+    }
+
+    function closeModal(e) {
+      if (e && e.type === 'click' && e.target && e.target.id !== 'modalBackdrop') return;
+      document.getElementById('modalBackdrop').style.display = 'none'; currentPedido = null;
+    }
+
+    function saveModal() {
+      const tipo = document.getElementById('modalTipo').value;
+      const nome = document.getElementById('modalNome').value.trim();
+      const qtdNum = document.getElementById('modalQtdNum').value.trim();
+      const qtdUn = document.getElementById('modalQtdUn').value.trim();
+      if (!nome || !qtdNum || !qtdUn) { alert('Preencha todos os campos'); return; }
+      if (modalMode === 'add') { const novo = { id: uid(), tipo, nome, qtdNum, qtdUn, uso: false }; items.push(novo); }
+      else if (editId) { const it = items.find(x => x.id === editId); it.tipo = tipo; it.nome = nome; it.qtdNum = qtdNum; it.qtdUn = qtdUn; }
+      saveData(items); closeMaterialModal(); renderCurrentTab();
+    }
+
+    function toggleUso(id) { const it = items.find(x => x.id === id); if (!it) return; it.uso = !it.uso; saveData(items); renderCurrentTab(); }
+    function excluir(id) { const it = items.find(x => x.id === id); if (!it) return; if (!confirm(`Excluir "${it.nome}"?`)) return; items = items.filter(x => x.id !== id); saveData(items); renderCurrentTab(); }
+    function enviarRelato() { const txt = document.getElementById('reportText').value.trim(); if (!txt) { alert('Digite algo para enviar.'); return; } alert('Relato enviado com sucesso!'); document.getElementById('reportText').value = ''; }
+    function limparRelato() { document.getElementById('reportText').value = ''; }
+
+    /* ---------- pedidos: persistência e UI ---------- */
+    const STORAGE_KEY_PEDIDOS = 'pedidos_etec_v1';
+    function loadPedidos() { try { const r = localStorage.getItem(STORAGE_KEY_PEDIDOS); return r ? JSON.parse(r) : null; } catch (e) { return null; } }
+    function savePedidos(p) { localStorage.setItem(STORAGE_KEY_PEDIDOS, JSON.stringify(p)); }
+
+    // pedidos simulados iniciais (dois pedidos), cada um com lab: 1,2 ou 3
+    const defaultPedidos = [
+      {
+        id: uid(),
+        professor: 'Prof.ª Maria Silva',
+        data: (new Date()).toLocaleString(),
+        laboratorio: '1',
+        status: 'pendente', // 'pendente' | 'separado'
+        itens: [
+          { nome: 'Béquer 100 mL', qtd: '2' },
+          { nome: 'Pipeta 10 mL', qtd: '4' },
+          { nome: 'Ácido clorídrico 0,1M', qtd: '1 frasco' }
+        ],
+        observacao: 'Aula de Química Analítica - manuseio com luvas'
+      },
+      {
+        id: uid(),
+        professor: 'Prof. João Pereira',
+        data: (new Date(Date.now()-3600*1000)).toLocaleString(),
+        laboratorio: '2',
+        status: 'pendente',
+        itens: [
+          { nome: 'Proveta 50 mL', qtd: '3' },
+          { nome: 'Pisseta 500 mL', qtd: '1' }
+        ],
+        observacao: ''
+      }
+    ];
+
+    let pedidos = loadPedidos() || defaultPedidos.slice();
+    savePedidos(pedidos);
+
+    // estado da aba interna
+    let innerTab = 'pendentes';
+    let currentPedido = null;
+
+    function switchInnerTab(tab) {
+      innerTab = tab;
+      document.querySelectorAll('#innerTabs .inner-tab').forEach(t => t.classList.toggle('active', t.dataset.inner === tab));
+      renderPedidos();
+    }
+
+    function renderPedidos() {
+      const wrapper = document.getElementById('pedidosConteudo');
+      wrapper.innerHTML = '';
+
+      const filterLab = document.getElementById('filterLab').value;
+      const search = (document.getElementById('searchPedidos').value || '').trim().toLowerCase();
+
+      // filtrar por status (pendentes / separados)
+      const byStatus = innerTab === 'pendentes' ? 'pendente' : 'separado';
+
+      // aplicar filtros
+      let list = pedidos.filter(p => p.status === byStatus);
+      if (filterLab !== 'todos') list = list.filter(p => p.laboratorio === filterLab);
+      if (search !== '') list = list.filter(p => (p.professor || '').toLowerCase().includes(search));
+
+      if (list.length === 0) {
+        wrapper.innerHTML = '<div class="muted">Nenhum pedido encontrado.</div>';
+      } else {
+        list.forEach(p => {
+          const card = document.createElement('div');
+          card.className = 'pedido-card';
+          const header = document.createElement('div');
+          header.className = 'pedido-header';
+          header.innerHTML = `
+            <div>
+              <div style="font-weight:700">${p.professor}</div>
+              <div class="small">Laboratório ${p.laboratorio} • ${p.data}</div>
+            </div>
+            <div style="display:flex;gap:8px;align-items:center">
+              <div class="small" style="margin-right:6px">${p.itens.length} item(s)</div>
+              <div class="actions">
+                <button class="btn btn-sm btn-ghost" onclick="openPedidoDetalhes('${p.id}')">Ver</button>
+                ${p.status === 'pendente' ? `<button class="btn btn-sm btn-primary" onclick="marcarSeparado('${p.id}')"> Separar</button>` : `<button class="btn btn-sm btn-ghost" onclick="voltarPendente('${p.id}')">⟲ voltar</button>`}
+              </div>
+            </div>
+          `;
+          card.appendChild(header);
+
+          // mostrar itens resumidos
+          const ul = document.createElement('ul');
+          ul.className = 'items-list';
+          p.itens.slice(0,3).forEach(it => {
+            const li = document.createElement('li');
+            li.textContent = `${it.nome} — ${it.qtd}`;
+            ul.appendChild(li);
+          });
+          if (p.itens.length > 3) {
+            const li = document.createElement('li');
+            li.className = 'small muted';
+            li.textContent = `+ ${p.itens.length - 3} item(s) ocultos`;
+            ul.appendChild(li);
+          }
+          card.appendChild(ul);
+
+          wrapper.appendChild(card);
+        });
+      }
+      updatePedidoCounters();
+    }
+
+    function updatePedidoCounters() {
+      const pend = pedidos.filter(p => p.status === 'pendente').length;
+      const sep = pedidos.filter(p => p.status === 'separado').length;
+      document.getElementById('countPendentes').innerText = `Pendentes: ${pend}`;
+      document.getElementById('countSeparados').innerText = `Separados: ${sep}`;
+    }
+
+    function openPedidoDetalhes(id) {
+      const p = pedidos.find(x => x.id === id); if (!p) return alert('Pedido não encontrado');
+      currentPedido = p;
+      document.getElementById('modalTitle').innerText = `Pedido — ${p.professor} (Lab ${p.laboratorio})`;
+      const body = document.getElementById('modalBody');
+      body.innerHTML = `
+        <div style="display:flex;justify-content:space-between;gap:12px">
+          <div><strong>Professor:</strong> ${p.professor}</div>
+          <div class="small"><strong>Data:</strong> ${p.data}</div>
+        </div>
+        <div style="margin-top:8px"><strong>Observação:</strong> ${p.observacao || '<span class="muted">—</span>'}</div>
+        <div style="margin-top:10px"><strong>Itens do kit:</strong></div>
+        <ul style="margin-top:6px">
+          ${p.itens.map(it => `<li>${it.nome} — ${it.qtd}</li>`).join('')}
+        </ul>
+      `;
+      // ajustar label do botão de ação
+      const btn = document.getElementById('modalToggleStatusBtn');
+      if (p.status === 'pendente') {
+        btn.innerText = 'Marcar como Separado';
+        btn.className = 'btn btn-primary';
+        btn.onclick = () => marcarSeparado(p.id, true);
+      } else {
+        btn.innerText = 'Voltar para Pendentes';
+        btn.className = 'btn btn-ghost';
+        btn.onclick = () => voltarPendente(p.id, true);
+      }
+      document.getElementById('modalBackdrop').style.display = 'flex';
+    }
+
+    // marcar separado (pode vir do botão na lista ou do modal)
+    function marcarSeparado(id, fromModal) {
+      const idx = pedidos.findIndex(p => p.id === id); if (idx === -1) return;
+      if (!fromModal) {
+        if (!confirm('Marcar este pedido como SEPARADO?')) return;
+      }
+      pedidos[idx].status = 'separado'; pedidos[idx].separadoEm = (new Date()).toLocaleString();
+      savePedidos(pedidos); renderPedidos();
+      if (fromModal) closeModal();
+    }
+
+    function voltarPendente(id, fromModal) {
+      const idx = pedidos.findIndex(p => p.id === id); if (idx === -1) return;
+      if (!fromModal) {
+        if (!confirm('Deseja voltar este pedido para PENDENTE?')) return;
+      }
+      pedidos[idx].status = 'pendente'; delete pedidos[idx].separadoEm;
+      savePedidos(pedidos); renderPedidos();
+      if (fromModal) closeModal();
+    }
+
+    // função para adicionar pedido (exemplo de uso futuro)
+    function adicionarPedido(obj) {
+      const novo = Object.assign({ id: uid(), data: (new Date()).toLocaleString(), status: 'pendente' }, obj);
+      pedidos.unshift(novo); savePedidos(pedidos); renderPedidos();
+    }
+
+    /* navegação do menu superior */
+    document.querySelectorAll('.faixa-vinho nav a').forEach(l => {
+      l.addEventListener('click', e => {
+        e.preventDefault();
+        const tela = l.dataset.screen;
+        document.querySelectorAll('main>section').forEach(s => s.style.display = 'none');
+        document.getElementById(tela).style.display = '';
+        if (tela === 'materiais') switchTab(currentTab);
+        if (tela === 'pedidos') { switchInnerTab(innerTab); renderPedidos(); }
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      });
+    });
+
+    // inicialização
+    switchTab('estoque');
+    switchInnerTab('pendentes');
+    renderPedidos();
+
+    // atalhos e eventos
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+
+    // Exemplo: você pode usar adicionarPedido para criar novos pedidos dinamicamente:
+    // adicionarPedido({ professor: 'Prof. X', laboratorio: '3', itens: [{nome:'Item A',qtd:'1'}], observacao: 'teste' });
+
+  </script>
+</body>
+</html>
