@@ -1,0 +1,802 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Sistema de Agendamentos - Professor</title>
+  <style>
+    /* ===== Reset / Base ===== */
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:Inter, "Segoe UI", Arial, Helvetica, sans-serif;background:#f6f7f8;color:#111;-webkit-font-smoothing:antialiased}
+    header{position:fixed;top:0;left:0;width:100%;z-index:60}
+    .topo{background:#fff;display:flex;align-items:center;padding:12px 18px;height:90px;border-bottom:1px solid #eee}
+    .logos img{height:90px}
+    .faixa-vinho{background:#b20000;color:#fff;height:56px;display:flex;align-items:center;justify-content:flex-end;padding-right:28px}
+    .faixa-vinho nav ul{display:flex;gap:18px;list-style:none}
+    .faixa-vinho nav a{color:#fff;text-decoration:none;font-weight:600;cursor:pointer;padding:10px;border-radius:8px}
+    .faixa-vinho nav a:hover{background:rgba(255,255,255,0.06)}
+    main{max-width:1180px;margin:140px auto 80px;padding:16px}
+
+    .container{background:#fff;border-radius:10px;padding:18px;box-shadow:0 6px 18px rgba(20,30,50,0.04);margin-bottom:16px}
+    h1,h2{font-weight:700}
+    h2{font-size:20px;margin-bottom:12px}
+    label{display:block;margin:8px 0 6px;font-weight:600}
+
+    /* grid helpers */
+    .grid{display:grid;gap:14px}
+    .cols-2{grid-template-columns:1fr 380px}
+    .cols-3{grid-template-columns:1fr 380px 300px}
+    @media(max-width:980px){ .cols-2,.cols-3{grid-template-columns:1fr} }
+
+    /* calendar */
+    .cal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+    .cal-header button{background:none;border:1px solid #eee;padding:6px 10px;border-radius:8px;cursor:pointer}
+    .calendar{display:grid;grid-template-columns:repeat(7,1fr);gap:8px}
+    .cell{aspect-ratio:1/1;background:#fff;border-radius:10px;display:flex;align-items:flex-start;justify-content:flex-start;padding:8px;border:1px solid #e8e8e8;cursor:pointer;position:relative;overflow:hidden;transition:transform .12s, background .12s}
+    .cell.header{background:#fafafa;font-weight:700;cursor:default;justify-content:center;align-items:center}
+    .day-num{position:absolute;top:8px;left:10px;font-weight:700;z-index:2}
+
+    /* hover blink animation (aplica apenas aos dias normais) */
+    @keyframes blinkRed {
+      0%   { background: #fff; }
+      50%  { background: rgba(178, 0, 0, 0.18); }
+      100% { background: #fff; }
+    }
+    /* aplica hover com animação, mas não quando a célula já está selecionada */
+    .cell:not(.header):not(.dia-selecionado):hover {
+      animation: blinkRed .9s infinite;
+      transform: translateY(-3px);
+      border-color: #b20000;
+    }
+
+    /* Seleção fixa — VERMELHO VINHO institucional */
+    .dia-selecionado {
+      background: #b20000 !important;   /* vinho fixo */
+      color: #fff !important;
+      border: 2px solid #7a0000 !important;
+      transform: translateY(-2px) scale(1.02);
+    }
+    .dia-selecionado .day-num { color: #fff !important; z-index:3; font-weight:800; }
+    .cell.dia-selecionado:hover { animation: none !important; }
+
+    .dia-agendado { background: #fff0f0; border-color:#ffd1cf }
+
+    /* items / kits builder */
+    .search-box{display:flex;gap:8px;margin-bottom:8px}
+    .search-box input{flex:1;padding:10px;border:1px solid #e3e6ea;border-radius:8px}
+    .items-list{max-height:360px;overflow:auto;padding:8px;border:1px solid #e8e8e8;border-radius:8px;background:#fff}
+    .item-card{display:flex;align-items:center;gap:8px;padding:10px;border-radius:8px;border-bottom:1px solid #f3f3f3}
+    .item-card:last-child{border-bottom:0}
+    .item-info{flex:1}
+    .item-name{font-weight:600}
+    .item-meta{font-size:13px;color:#666;margin-top:4px}
+    .qty-controls{display:flex;gap:6px;align-items:center}
+    .qty-controls input{width:76px;padding:6px;border-radius:6px;border:1px solid #e3e6ea;text-align:center}
+    .btn{padding:8px 10px;border-radius:8px;border:0;cursor:pointer}
+    .btn-primary{background:#b20000;color:#fff}
+    .btn-ghost{background:#f1f4f8;border:1px solid #e6e9ee}
+    .kit-preview{border:1px solid #f2d8c9;background:#fff8f2;padding:10px;border-radius:8px;min-height:80px}
+    .kit-item{display:flex;align-items:center;gap:8px;padding:6px;border-radius:6px;border-bottom:1px solid #f1f1f1}
+    .kit-item:last-child{border-bottom:0}
+    .muted{color:#6b7280;font-size:13px}
+    .action-btn{background:none;border:0;cursor:pointer;padding:6px;border-radius:6px}
+    .action-btn:hover{background:#f3f4f6}
+
+    /* kits list minimal */
+    .kit-row{display:flex;align-items:center;justify-content:space-between;padding:8px;border-bottom:1px solid #f3f3f3}
+    .kit-row:last-child{border-bottom:0}
+    .small-ico{font-size:16px;margin-left:6px}
+
+    /* tables */
+    table{width:100%;border-collapse:collapse}
+    th,td{padding:10px;border-bottom:1px solid #eef2f6;text-align:left}
+    th{background:#fafafa}
+
+    /* modal */
+    .modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,0.45);display:none;align-items:center;justify-content:center;z-index:120;padding:18px}
+    .modal{background:#fff;border-radius:10px;padding:18px;max-width:920px;width:100%;max-height:85vh;overflow:auto;box-shadow:0 10px 40px rgba(0,0,0,0.35)}
+    .modal .modal-header{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+    .modal .close-btn{margin-left:auto;background:none;border:0;font-size:18px;cursor:pointer}
+    .icon-btn{border:0;background:none;cursor:pointer;padding:6px;border-radius:6px}
+    .icon-btn:hover{background:#f3f4f6}
+
+    @media(max-width:700px){ .modal{max-width:96%} }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="topo">
+      <div class="logos"><img src="https://i.ibb.co/fVS0Zjm5/imagem-2025-11-10-082221609.png" alt="Logo"></div>
+    </div>
+
+    <div class="faixa-vinho">
+      <nav>
+        <ul>
+          <li><a data-screen="agendamento">Agendar Experimento</a></li>
+          <li><a data-screen="kits">Kits</a></li>
+          <li><a data-screen="dashboard">Meus Agendamentos</a></li>
+          <li><a data-screen="perfil">Perfil</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <!-- AGENDAR -->
+    <section id="agendamento" class="container screen">
+      <h2>Agendamento de Experimento</h2>
+      <div class="grid cols-2">
+        <div>
+          <label>Laboratório</label>
+          <select id="labSelect">
+            <option>Lab. 1 (capacidade 2)</option>
+            <option>Lab. 2 (capacidade 1)</option>
+            <option>Lab. 3 (capacidade 3)</option>
+          </select>
+
+          <div style="margin-top:12px">
+            <div class="cal-header">
+              <button onclick="mudarMes(-1)">◀</button>
+              <div id="mesAno" class="muted"></div>
+              <button onclick="mudarMes(1)">▶</button>
+            </div>
+            <div id="calendario" class="calendar"></div>
+            <div id="listaHorarios" style="display:none;margin-top:10px;background:#fff8f8;border:1px solid #f0d0d0;padding:10px;border-radius:8px"></div>
+          </div>
+        </div>
+
+        <aside>
+          <label>Escolher Horário</label>
+          <select id="agHora"><option value="">Selecione um horário</option></select>
+
+          <label style="margin-top:10px">Usar Kit</label>
+          <select id="kitSelect"><option value="">Selecione um kit (opcional)</option></select>
+
+          <label style="margin-top:10px"> Observações (edição rápida)</label>
+          <textarea id="materiaisAg" rows="4" placeholder="Becker x3, Ácido clorídrico 100mL"></textarea>
+
+          <div style="margin-top:12px;display:flex;gap:8px">
+            <button class="btn btn-primary" onclick="criarAgendamento()">Salvar Solicitação</button>
+            <button class="btn btn-ghost" onclick="limparAgendamento()">Limpar</button>
+          </div>
+
+          <div style="margin-top:12px">
+            <button class="btn btn-ghost" onclick="showScreen('dashboard')">Ver Meus Agendamentos</button>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <!-- KITS -->
+    <section id="kits" class="container screen" style="display:none">
+      <h2>Kits</h2>
+      <div style="display:flex;gap:18px;flex-direction:column">
+        <div class="search-box">
+          <input id="searchInput" placeholder="Pesquisar reagente ou material (ex: Becker, Ácido)"/>
+          <select id="filterSelect" style="width:160px;padding:8px;border:1px solid #e3e6ea;border-radius:8px">
+            <option value="all">Todos os tipos</option>
+            <option value="reagente">Reagentes</option>
+            <option value="vidraria">Vidrarias / Materiais</option>
+          </select>
+          <div style="margin-left:auto" class="muted">Resultados: <span id="resultCount">0</span></div>
+        </div>
+
+        <div class="grid cols-3">
+          <!-- builder -->
+          <div>
+            <label>Itens (selecione quantidade e clique "Adicionar")</label>
+            <div id="itemsList" class="items-list"></div>
+          </div>
+
+          <!-- preview + salvar -->
+          <div>
+            <label>Preview do Kit</label>
+            <div class="kit-preview" id="kitPreview">Nenhum item adicionado.</div>
+
+            <div style="margin-top:10px;display:flex;gap:8px">
+              <input id="kitNameInput" placeholder="Nome do kit (opcional)" style="flex:1;padding:8px;border:1px solid #e3e6ea;border-radius:8px"/>
+              <button class="btn btn-primary" id="btnSaveKit">Salvar Kit</button>
+            </div>
+          </div>
+
+          <!-- meus kits minimal -->
+          <div>
+            <label>Kits Padrão</label>
+            <div class="kit-row" style="background:#fff;padding:8px;border-radius:8px;margin-bottom:8px">
+              <div>Kit Reagentes</div>
+              <div class="muted">—</div>
+            </div>
+            <div class="kit-row" style="background:#fff;padding:8px;border-radius:8px;margin-bottom:14px">
+              <div>Kit Montagem</div>
+              <div class="muted">—</div>
+            </div>
+
+            <label>Meus Kits</label>
+            <div id="meusKitsList" style="background:#fff;padding:8px;border:1px solid #e8e8e8;border-radius:8px;max-height:260px;overflow:auto"></div>
+            <div style="margin-top:10px">
+              <button class="btn btn-ghost" onclick="clearAllKits()">Limpar todos os kits</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- DASHBOARD -->
+    <section id="dashboard" class="container screen" style="display:none">
+      <h2>Meus Agendamentos</h2>
+      <div style="margin-bottom:12px;display:flex;gap:8px;align-items:center">
+        <button class="btn btn-primary" onclick="showScreen('agendamento')">Novo Agendamento</button>
+        <div class="muted" style="margin-left:auto">Total: <span id="totalAppts">0</span></div>
+      </div>
+
+      <table>
+        <thead><tr><th>Data</th><th>Hora</th><th>Laboratório</th><th>Ações</th></tr></thead>
+        <tbody id="meusAgs"></tbody>
+      </table>
+    </section>
+
+    <!-- PERFIL -->
+    <section id="perfil" class="container screen" style="display:none">
+      <h2>Perfil</h2>
+      <label>Nome</label>
+      <input id="perfilNome" type="text" value="Prof. Nome" style="padding:8px;border:1px solid #e3e6ea;border-radius:8px"/>
+      <label style="margin-top:8px">Email</label>
+      <input id="perfilEmail" type="email" value="professor@email.com" style="padding:8px;border:1px solid #e3e6ea;border-radius:8px"/>
+      <label style="margin-top:8px">Senha (trocar)</label>
+      <input id="perfilSenha" type="password" placeholder="Nova senha" style="padding:8px;border:1px solid #e3e6ea;border-radius:8px"/>
+      <div style="margin-top:12px">
+        <button class="btn btn-primary" onclick="salvarPerfil()">Salvar Perfil</button>
+      </div>
+    </section>
+  </main>
+
+  <!-- Modal: visualizar kit -->
+  <div id="kitModalBackdrop" class="modal-backdrop">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="kitModalTitle">
+      <div class="modal-header">
+        <h3 id="kitModalTitle">Kit</h3>
+        <button class="close-btn" onclick="closeModal('kitModalBackdrop')">✖</button>
+      </div>
+      <div id="kitModalContent"></div>
+      <div style="margin-top:12px;display:flex;gap:8px">
+        <button class="btn btn-primary" id="modalEditKitBtn">Editar Kit</button>
+        <button class="btn btn-ghost" onclick="closeModal('kitModalBackdrop')">Fechar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: visualizar agendamento -->
+  <div id="apptModalBackdrop" class="modal-backdrop">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="apptModalTitle">
+      <div class="modal-header">
+        <h3 id="apptModalTitle">Detalhes do Agendamento</h3>
+        <button class="close-btn" onclick="closeModal('apptModalBackdrop')">✖</button>
+      </div>
+      <div id="apptModalContent"></div>
+      <div style="margin-top:12px;display:flex;gap:8px">
+        <button class="btn btn-primary" id="modalEditKitFromApptBtn">Editar Kit</button>
+        <button class="btn btn-ghost" id="modalCancelApptBtn">Cancelar Agendamento</button>
+        <button class="btn btn-ghost" onclick="closeModal('apptModalBackdrop')">Fechar</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /* ============================
+       Dados (extraídos / simulados a partir das planilhas)
+       - Vidrarias: qty | name | unit
+       - Reagentes: name | unit
+       (Aqui incluí amostras; substitua caso queira dados diferentes)
+    ============================ */
+    const vidrariasList = [
+      { qty: 10, name: "Becker 50 mL", unit: "un" },
+      { qty: 8, name: "Becker 100 mL", unit: "un" },
+      { qty: 6, name: "Becker 250 mL", unit: "un" },
+      { qty: 4, name: "Erlenmeyer 250 mL", unit: "un" },
+      { qty: 12, name: "Proveta 100 mL", unit: "un" },
+      { qty: 20, name: "Tubo de ensaio 16x150 mm", unit: "un" },
+      { qty: 5, name: "Bico de Bunsen", unit: "un" },
+      { qty: 3, name: "Microscópio (básico)", unit: "un" }
+    ];
+    const reagentesList = [
+      { name: "Ácido Clorídrico 500 mL", unit: "mL" },
+      { name: "Cloreto de Sódio", unit: "g" },
+      { name: "Álcool etílico 70%", unit: "mL" },
+      { name: "Glicerina", unit: "mL" },
+      { name: "Acetona", unit: "mL" },
+      { name: "Bicarbonato de Sódio", unit: "g" }
+    ];
+
+    const horariosETEC = [
+      "07:10 - 08:00","08:00 - 08:50","08:50 - 09:40",
+      "10:00 - 10:50","10:50 - 11:40","11:40 - 12:30",
+      "13:00 - 13:50","13:50 - 14:40","14:40 - 15:30",
+      "15:50 - 16:40","16:40 - 17:30","17:30 - 18:20",
+      "18:50 - 20:44","20:58 - 22:50"
+    ];
+
+    /* ===== App state (localStorage) ===== */
+    let kitsPersonalizados = JSON.parse(localStorage.getItem('kitsPersonalizados') || '[]'); // array {id,nome,items}
+    let apptsMap = JSON.parse(localStorage.getItem('appts') || '{}'); // id -> appt
+    let agendamentos = JSON.parse(localStorage.getItem('agendamentos') || '{}'); // date -> [times]
+
+    /* unify items (for search/builder) */
+    let items = [];
+    function buildItems(){
+      items = [];
+      reagentesList.forEach((r,i)=> items.push({ type:'reagente', id:'r'+i, name:r.name, unit:r.unit, qty:null }));
+      vidrariasList.forEach((v,i)=> items.push({ type:'vidraria', id:'v'+i, name:v.name, unit:v.unit, qty: v.qty != null ? Number(v.qty) : null }));
+    }
+    buildItems();
+
+    /* temp kit */
+    let tempKit = []; // {id,type,name,unit,qtySelected}
+    let editingKitId = null; // if editing saved kit
+
+    /* calendar */
+    let mesAtual = new Date().getMonth();
+    let anoAtual = new Date().getFullYear();
+    let dataSelecionada = null;
+
+    /* DOM refs */
+    const itemsListEl = document.getElementById('itemsList');
+    const searchInput = document.getElementById('searchInput');
+    const filterSelect = document.getElementById('filterSelect');
+    const resultCount = document.getElementById('resultCount');
+    const kitPreviewEl = document.getElementById('kitPreview');
+    const kitNameInput = document.getElementById('kitNameInput');
+    const meusKitsList = document.getElementById('meusKitsList');
+    const kitSelect = document.getElementById('kitSelect');
+    const meusAgsBody = document.getElementById('meusAgs');
+    const totalApptsEl = document.getElementById('totalAppts');
+
+    /* init */
+    document.addEventListener('DOMContentLoaded', ()=>{
+      document.querySelectorAll('.faixa-vinho nav a').forEach(a=>{
+        a.addEventListener('click', e=>{
+          e.preventDefault();
+          showScreen(a.getAttribute('data-screen'));
+        });
+      });
+      document.getElementById('btnSaveKit').addEventListener('click', saveKitFromTemp);
+      searchInput.addEventListener('input', renderItems);
+      filterSelect.addEventListener('change', renderItems);
+      renderItems();
+      renderKitPreview();
+      renderSavedKits();
+      populateKitSelect();
+      renderMeusAgendamentos();
+      gerarCalendario(mesAtual, anoAtual);
+      showScreen('agendamento');
+    });
+
+    function showScreen(id){
+      document.querySelectorAll('.screen').forEach(s=>s.style.display='none');
+      document.getElementById(id).style.display='block';
+      if(id === 'agendamento') gerarCalendario(mesAtual, anoAtual);
+      window.scrollTo({top:0,behavior:'smooth'});
+    }
+
+    /* ===== items rendering (search/filter) ===== */
+    function renderItems(){
+      const q = searchInput.value.trim().toLowerCase();
+      const filter = filterSelect.value;
+      itemsListEl.innerHTML = '';
+      let count = 0;
+      items.forEach(it=>{
+        if(filter !== 'all' && it.type !== filter) return;
+        if(q && !it.name.toLowerCase().includes(q)) return;
+        count++;
+        const card = document.createElement('div'); card.className='item-card';
+        const info = document.createElement('div'); info.className='item-info';
+        info.innerHTML = `<div class="item-name">${it.name}</div><div class="item-meta">${it.unit ? it.unit : ''} ${it.qty != null ? '• Disponível: '+it.qty : ''}</div>`;
+        const controls = document.createElement('div'); controls.className='qty-controls';
+        const inputQty = document.createElement('input'); inputQty.type='number'; inputQty.min=1; inputQty.value=1; inputQty.title='Quantidade';
+        if(it.qty != null) inputQty.max = it.qty;
+        const btn = document.createElement('button'); btn.className='btn btn-primary'; btn.textContent='Adicionar';
+        btn.onclick = ()=> {
+          const val = Number(inputQty.value) || 0;
+          if(val <= 0){ alert('Informe quantidade válida'); return; }
+          if(it.qty != null && val > it.qty){ alert('Quantidade maior que disponível ('+it.qty+')'); return; }
+          addToTempKit({ id: it.id, type: it.type, name: it.name, unit: it.unit, qtySelected: val });
+        };
+        controls.appendChild(inputQty); controls.appendChild(btn);
+        card.appendChild(info); card.appendChild(controls);
+        itemsListEl.appendChild(card);
+      });
+      resultCount.textContent = count;
+      if(count === 0) itemsListEl.innerHTML = '<div class="muted" style="padding:8px">Nenhum item encontrado.</div>';
+    }
+
+    /* ===== temp kit operations ===== */
+    function addToTempKit(item){
+      const found = tempKit.find(i=>i.id===item.id);
+      if(found){
+        const original = items.find(it=>it.id===item.id);
+        const newQty = found.qtySelected + item.qtySelected;
+        if(original.qty != null && newQty > original.qty){ alert('Excede quantidade disponível'); return; }
+        found.qtySelected = newQty;
+      } else tempKit.push({...item});
+      renderKitPreview();
+    }
+
+    function renderKitPreview(){
+      if(tempKit.length === 0){ kitPreviewEl.innerHTML = 'Nenhum item adicionado.'; return; }
+      kitPreviewEl.innerHTML = '';
+      tempKit.forEach((k, idx)=>{
+        const row = document.createElement('div'); row.className='kit-item';
+        const info = document.createElement('div'); info.style.flex='1';
+        info.innerHTML = `<strong>${k.name}</strong><div class="muted">${k.unit?k.unit:''}</div>`;
+        const qtyInput = document.createElement('input'); qtyInput.type='number'; qtyInput.value=k.qtySelected; qtyInput.min=1; qtyInput.style.width='80px';
+        const original = items.find(it=>it.id===k.id);
+        if(original && original.qty != null) qtyInput.max = original.qty;
+        qtyInput.onchange = ()=>{
+          let v = Number(qtyInput.value) || 1;
+          if(original && original.qty != null && v > original.qty){ alert('Excede estoque disponível ('+original.qty+')'); qtyInput.value=k.qtySelected; return; }
+          k.qtySelected = v;
+          renderKitPreview();
+        };
+        const btnRem = document.createElement('button'); btnRem.className='action-btn'; btnRem.title='Remover'; btnRem.innerHTML='🗑️';
+        btnRem.onclick = ()=> { tempKit.splice(idx,1); renderKitPreview(); };
+        row.appendChild(info); row.appendChild(qtyInput); row.appendChild(btnRem);
+        kitPreviewEl.appendChild(row);
+      });
+      const total = tempKit.reduce((s,i)=>s+i.qtySelected,0);
+      const foot = document.createElement('div'); foot.style.marginTop='8px'; foot.innerHTML = `<div class="muted">Total de itens: <strong>${total}</strong></div>`;
+      kitPreviewEl.appendChild(foot);
+    }
+
+    /* ===== create / edit / delete kits ===== */
+    function generateId(prefix='k'){ return prefix + '_' + Date.now() + '_' + Math.floor(Math.random()*900+100); }
+
+    function saveKitFromTemp(){
+      if(tempKit.length === 0){ alert('Adicione ao menos um item ao kit.'); return; }
+      const nameProvided = kitNameInput.value.trim();
+      const nome = nameProvided || `Kit personalizado — ${tempKit.length} item${tempKit.length>1?'s':''}`;
+      if(editingKitId){
+        const idx = kitsPersonalizados.findIndex(k=>k.id===editingKitId);
+        if(idx>=0){
+          kitsPersonalizados[idx].nome = nome;
+          kitsPersonalizados[idx].items = JSON.parse(JSON.stringify(tempKit));
+          alert('Kit atualizado!');
+        } else {
+          kitsPersonalizados.push({ id: generateId(), nome, items: JSON.parse(JSON.stringify(tempKit)) });
+          alert('Kit salvo!');
+        }
+        editingKitId = null;
+      } else {
+        kitsPersonalizados.push({ id: generateId(), nome, items: JSON.parse(JSON.stringify(tempKit)) });
+        alert('Kit salvo!');
+      }
+      localStorage.setItem('kitsPersonalizados', JSON.stringify(kitsPersonalizados));
+      tempKit = [];
+      kitNameInput.value = '';
+      renderKitPreview();
+      renderSavedKits();
+      populateKitSelect();
+    }
+
+    function renderSavedKits(){
+      kitsPersonalizados = JSON.parse(localStorage.getItem('kitsPersonalizados') || '[]');
+      meusKitsList.innerHTML = '';
+      if(kitsPersonalizados.length === 0){ meusKitsList.innerHTML = '<div class="muted" style="padding:8px">Nenhum kit salvo.</div>'; populateKitSelect(); return; }
+      kitsPersonalizados.forEach(k=>{
+        const row = document.createElement('div'); row.className='kit-row';
+        const left = document.createElement('div'); left.textContent = k.nome;
+        const right = document.createElement('div');
+        const viewBtn = document.createElement('button'); viewBtn.className='icon-btn'; viewBtn.title='Visualizar kit'; viewBtn.innerHTML='🔍'; viewBtn.onclick = ()=> openKitModal(k.id);
+        const editBtn = document.createElement('button'); editBtn.className='icon-btn'; editBtn.title='Editar kit'; editBtn.innerHTML='✏️'; editBtn.onclick = ()=> loadKitToEdit(k.id);
+        const delBtn = document.createElement('button'); delBtn.className='icon-btn'; delBtn.title='Excluir kit'; delBtn.innerHTML='🗑️'; delBtn.onclick = ()=> { if(confirm('Excluir kit?')) deleteKit(k.id); };
+        right.appendChild(viewBtn); right.appendChild(editBtn); right.appendChild(delBtn);
+        row.appendChild(left); row.appendChild(right);
+        meusKitsList.appendChild(row);
+      });
+      populateKitSelect();
+    }
+
+    function openKitModal(kitId){
+      const kit = kitsPersonalizados.find(k=>k.id===kitId);
+      const content = document.getElementById('kitModalContent');
+      if(!kit) content.innerHTML = '<div class="muted">Kit não encontrado.</div>';
+      else content.innerHTML = `<h4 style="margin-bottom:8px">${kit.nome}</h4><div>${kit.items.map(it=>`<div style="padding:6px;border-bottom:1px solid #f3f3f3"><strong>${it.name}</strong> — ${it.qtySelected} ${it.unit||''}</div>`).join('')}</div>`;
+      const editBtn = document.getElementById('modalEditKitBtn');
+      editBtn.onclick = ()=> { closeModal('kitModalBackdrop'); if(kit) loadKitToEdit(kit.id); };
+      showModal('kitModalBackdrop');
+    }
+
+    function loadKitToEdit(kitId){
+      const kit = kitsPersonalizados.find(k=>k.id===kitId);
+      if(!kit) return alert('Kit não encontrado');
+      tempKit = JSON.parse(JSON.stringify(kit.items));
+      editingKitId = kit.id;
+      kitNameInput.value = kit.nome;
+      renderKitPreview();
+      showScreen('kits');
+      window.scrollTo({top:0,behavior:'smooth'});
+    }
+
+    function deleteKit(kitId){
+      const idx = kitsPersonalizados.findIndex(k=>k.id===kitId);
+      if(idx>=0){ kitsPersonalizados.splice(idx,1); localStorage.setItem('kitsPersonalizados', JSON.stringify(kitsPersonalizados)); renderSavedKits(); populateKitSelect(); alert('Kit removido.'); }
+    }
+
+    function clearAllKits(){ if(!confirm('Remover todos os kits salvos?')) return; kitsPersonalizados = []; localStorage.setItem('kitsPersonalizados','[]'); renderSavedKits(); populateKitSelect(); }
+
+    /* ===== populate select kits (agendamento) ===== */
+    function populateKitSelect(){
+      kitSelect.innerHTML = '<option value="">Selecione um kit (opcional)</option>';
+      const o1 = document.createElement('option'); o1.value='__padrao_kit_reagentes'; o1.textContent='Kit Reagentes';
+      const o2 = document.createElement('option'); o2.value='__padrao_kit_montagem'; o2.textContent='Kit Montagem';
+      kitSelect.appendChild(o1); kitSelect.appendChild(o2);
+      kitsPersonalizados.forEach(k=>{
+        const opt = document.createElement('option'); opt.value='__meu_'+k.id; opt.textContent = k.nome; kitSelect.appendChild(opt);
+      });
+    }
+
+    /* ===== calendar & appointments ===== */
+    function gerarCalendario(mes, ano){
+      const diasSemana = ["Dom","Seg","Ter","Qua","Qui","Sex","Sáb"];
+      const cal = document.getElementById('calendario'); cal.innerHTML = '';
+      document.getElementById('mesAno').textContent = new Date(ano, mes).toLocaleDateString('pt-BR',{ month:'long', year:'numeric' });
+      diasSemana.forEach(d=>{ const h=document.createElement('div'); h.className='cell header'; h.textContent=d; cal.appendChild(h); });
+      const primeiro = new Date(ano,mes,1);
+      const ultimo = new Date(ano,mes+1,0);
+      const inicio = primeiro.getDay();
+      for(let i=0;i<inicio;i++) cal.appendChild(document.createElement('div'));
+      for(let d=1; d<=ultimo.getDate(); d++){
+        const dataFmt = `${ano}-${String(mes+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+        const c = document.createElement('div'); c.className='cell';
+        const num = document.createElement('div'); num.className='day-num'; num.textContent = d;
+        c.appendChild(num);
+        if(agendamentos[dataFmt] && agendamentos[dataFmt].length) c.classList.add('dia-agendado');
+        c.addEventListener('click', ()=> selecionarDia(c, dataFmt));
+        cal.appendChild(c);
+      }
+    }
+
+    function mudarMes(delta){
+      mesAtual += delta;
+      if(mesAtual < 0){ mesAtual = 11; anoAtual--; }
+      else if(mesAtual > 11){ mesAtual = 0; anoAtual++; }
+      gerarCalendario(mesAtual, anoAtual);
+    }
+
+    function selecionarDia(cell, dataFmt){
+      // remove seleção apenas das células de dia
+      document.querySelectorAll('#calendario .cell:not(.header)').forEach(c=>c.classList.remove('dia-selecionado'));
+      cell.classList.add('dia-selecionado');
+      dataSelecionada = dataFmt;
+      const lista = document.getElementById('listaHorarios'); lista.style.display='block';
+      const ags = agendamentos[dataSelecionada] || [];
+      if(ags.length) lista.innerHTML = '<strong>Horários já reservados:</strong><ul style="margin-left:16px;margin-top:8px">'+ags.map(h=>`<li>${h}</li>`).join('')+'</ul>';
+      else lista.innerHTML = '<strong>Nenhum horário reservado neste dia.</strong>';
+      const sel = document.getElementById('agHora'); sel.innerHTML = '<option value="">Selecione um horário</option>';
+      horariosETEC.forEach(h => { if(!ags.includes(h)){ const o = document.createElement('option'); o.value=h; o.textContent=h; sel.appendChild(o); }});
+      showScreen('agendamento');
+    }
+
+    function criarAgendamento(){
+      const hora = document.getElementById('agHora').value;
+      const lab = document.getElementById('labSelect').value;
+      const kitSel = document.getElementById('kitSelect').value;
+      const materiais = document.getElementById('materiaisAg').value.trim();
+      if(!dataSelecionada){ alert('Selecione um dia.'); return; }
+      if(!hora){ alert('Selecione um horário.'); return; }
+      if(!lab){ alert('Selecione um laboratório.'); return; }
+      if(!agendamentos[dataSelecionada]) agendamentos[dataSelecionada]=[];
+      if(agendamentos[dataSelecionada].includes(hora)){ alert('Horário já reservado!'); return; }
+      // build appt
+      const appt = { id: generateId('a'), date:dataSelecionada, time:hora, lab, status:'Pendente', materiaisAdicionais: materiais };
+      if(kitSel.startsWith('__meu_')){
+        appt.kit = { type:'saved', kitId: kitSel.replace('__meu_','') };
+      } else if(kitSel.startsWith('__padrao_')){
+        appt.kit = { type:'padrao', key: kitSel };
+      } else {
+        appt.kit = null; // allow creating without kit
+      }
+      // store
+      agendamentos[dataSelecionada].push(hora);
+      apptsMap[appt.id] = appt;
+      localStorage.setItem('appts', JSON.stringify(apptsMap));
+      localStorage.setItem('agendamentos', JSON.stringify(agendamentos));
+      renderMeusAgendamentos();
+      alert('Agendamento criado!');
+      document.getElementById('agHora').selectedIndex = 0;
+      document.getElementById('materiaisAg').value = '';
+      gerarCalendario(mesAtual, anoAtual);
+      showScreen('dashboard');
+    }
+
+    function renderMeusAgendamentos(){
+      meusAgsBody.innerHTML = '';
+      apptsMap = JSON.parse(localStorage.getItem('appts') || '{}');
+      const arr = Object.values(apptsMap).sort((a,b)=> a.date===b.date ? a.time.localeCompare(b.time) : a.date.localeCompare(b.date));
+      arr.forEach(appt=>{
+        const tr = document.createElement('tr');
+        const [ano,mes,dia] = appt.date.split('-');
+        tr.innerHTML = `<td>${dia}/${mes}/${ano}</td><td>${appt.time}</td><td>${appt.lab}</td>
+          <td>
+            <button class="action-btn" title="Ver detalhes" onclick="openApptModal('${appt.id}')">🔍</button>
+            <button class="action-btn" title="Editar kit" onclick="openApptModal('${appt.id}')">🧪</button>
+            <button class="action-btn" title="Cancelar" onclick="cancelAppt('${appt.id}')">🗑️</button>
+          </td>`;
+        meusAgsBody.appendChild(tr);
+      });
+      totalApptsEl.textContent = arr.length;
+      if(arr.length === 0) meusAgsBody.innerHTML = '<tr><td colspan="4" class="muted">Nenhum agendamento.</td></tr>';
+    }
+
+    // OPEN APPOINTMENT MODAL — allows adding/changing kit after creation
+    function openApptModal(apptId){
+      const appt = (JSON.parse(localStorage.getItem('appts')||'{}'))[apptId];
+      const content = document.getElementById('apptModalContent');
+      if(!appt){ content.innerHTML = '<div class="muted">Agendamento não encontrado.</div>'; showModal('apptModalBackdrop'); return; }
+
+      const [ano,mes,dia] = appt.date.split('-');
+      let html = `<div><strong>Data:</strong> ${dia}/${mes}/${ano}</div><div><strong>Hora:</strong> ${appt.time}</div><div><strong>Laboratório:</strong> ${appt.lab}</div>`;
+
+      // current kit display
+      if(appt.kit){
+        if(appt.kit.type === 'saved'){
+          const kit = kitsPersonalizados.find(k=>k.id===appt.kit.kitId);
+          html += `<div style="margin-top:8px"><strong>Kit atual:</strong> ${kit ? kit.nome : '(kit removido)'}</div>`;
+          if(kit) html += `<div style="margin-top:6px" class="muted">${kit.items.map(it=>`${it.name} x${it.qtySelected}`).join('<br>')}</div>`;
+        } else if(appt.kit.type === 'padrao'){
+          html += `<div style="margin-top:8px"><strong>Kit atual:</strong> (Kit padrão)</div>`;
+        } else if(appt.kit.type === 'snapshot'){
+          html += `<div style="margin-top:8px"><strong>Kit atual (snapshot):</strong></div><div class="muted" style="margin-top:6px">${appt.kit.snapshot.map(it=>`${it.name} x${it.qtySelected}`).join('<br>')}</div>`;
+        }
+      } else {
+        html += `<div style="margin-top:8px"><strong>Kit atual:</strong> — Nenhum kit selecionado.</div>`;
+      }
+
+      // selector to add/change kit AFTER creation
+      html += `
+        <div style="margin-top:10px">
+          <label for="newKitSelect"><strong>Selecionar ou alterar Kit:</strong></label>
+          <select id="newKitSelect" style="width:100%;padding:8px;border:1px solid #ccc;border-radius:8px;margin-top:6px">
+            <option value="">Nenhum</option>
+            <option value="__padrao_kit_reagentes">Kit Reagentes</option>
+            <option value="__padrao_kit_montagem">Kit Montagem</option>
+            ${kitsPersonalizados.map(k=>`<option value="__meu_${k.id}" ${appt.kit && appt.kit.type==='saved' && appt.kit.kitId===k.id ? 'selected' : ''}>${k.nome}</option>`).join('')}
+          </select>
+          <div style="display:flex;gap:8px;margin-top:8px">
+            <button class="btn btn-primary" onclick="updateApptKit('${apptId}')">Salvar Kit</button>
+            <button class="btn btn-ghost" onclick="removeKitFromAppt('${apptId}')">Remover Kit</button>
+          </div>
+        </div>
+      `;
+
+      if(appt.materiaisAdicionais) html += `<div style="margin-top:8px"><strong>Observações:</strong> ${appt.materiaisAdicionais}</div>`;
+
+      content.innerHTML = html;
+
+      // modal "Editar kit" button: if appt had snapshot or saved, open kit editor (behavior preserved)
+      document.getElementById('modalEditKitFromApptBtn').onclick = ()=> {
+        if(appt.kit && appt.kit.type === 'saved'){
+          loadKitToEdit(appt.kit.kitId);
+          closeModal('apptModalBackdrop');
+        } else if(appt.kit && appt.kit.type === 'snapshot'){
+          tempKit = JSON.parse(JSON.stringify(appt.kit.snapshot));
+          editingKitId = null;
+          kitNameInput.value = `Kit do agendamento ${appt.time} ${dia}/${mes}`;
+          renderKitPreview();
+          closeModal('apptModalBackdrop');
+          showScreen('kits');
+          // update appointment after saving new kit (one-time hook)
+          const handler = ()=>{
+            const last = kitsPersonalizados[kitsPersonalizados.length-1];
+            if(last){
+              apptsMap = JSON.parse(localStorage.getItem('appts') || '{}');
+              if(apptsMap[apptId]){
+                apptsMap[apptId].kit = { type:'saved', kitId: last.id };
+                localStorage.setItem('appts', JSON.stringify(apptsMap));
+                renderMeusAgendamentos();
+                alert('Agendamento atualizado para usar o novo kit salvo.');
+              }
+            }
+            document.getElementById('btnSaveKit').removeEventListener('click', handler);
+          };
+          document.getElementById('btnSaveKit').addEventListener('click', handler);
+        } else {
+          alert('Não há kit salvo para editar neste agendamento.');
+        }
+      };
+
+      document.getElementById('modalCancelApptBtn').onclick = ()=> {
+        if(confirm('Cancelar este agendamento?')){ cancelAppt(apptId); closeModal('apptModalBackdrop'); }
+      };
+
+      showModal('apptModalBackdrop');
+    }
+
+    // update appointment with chosen kit
+    function updateApptKit(apptId){
+      const sel = document.getElementById('newKitSelect');
+      if(!sel) return alert('Selecione um kit.');
+      const newKitValue = sel.value;
+      const appts = JSON.parse(localStorage.getItem('appts') || '{}');
+      const appt = appts[apptId];
+      if(!appt) return alert('Agendamento não encontrado.');
+      if(!newKitValue){
+        appt.kit = null;
+        alert('Kit removido do agendamento.');
+      } else if(newKitValue.startsWith('__meu_')){
+        appt.kit = { type:'saved', kitId: newKitValue.replace('__meu_','') };
+        alert('Kit personalizado associado com sucesso!');
+      } else if(newKitValue.startsWith('__padrao_')){
+        appt.kit = { type:'padrao', key: newKitValue };
+        alert('Kit padrão associado com sucesso!');
+      }
+      appts[apptId] = appt;
+      localStorage.setItem('appts', JSON.stringify(appts));
+      renderMeusAgendamentos();
+      closeModal('apptModalBackdrop');
+    }
+
+    function removeKitFromAppt(apptId){
+      if(!confirm('Remover kit deste agendamento?')) return;
+      const appts = JSON.parse(localStorage.getItem('appts') || '{}');
+      if(!appts[apptId]) return alert('Agendamento não encontrado.');
+      appts[apptId].kit = null;
+      localStorage.setItem('appts', JSON.stringify(appts));
+      renderMeusAgendamentos();
+      closeModal('apptModalBackdrop');
+      alert('Kit removido do agendamento.');
+    }
+
+    function cancelAppt(apptId){
+      if(!confirm('Deseja cancelar o agendamento?')) return;
+      const appts = JSON.parse(localStorage.getItem('appts') || '{}');
+      const appt = appts[apptId];
+      if(!appt) { alert('Agendamento não encontrado'); return; }
+      if(agendamentos[appt.date]) {
+        agendamentos[appt.date] = agendamentos[appt.date].filter(t => t !== appt.time);
+        if(agendamentos[appt.date].length === 0) delete agendamentos[appt.date];
+      }
+      delete appts[apptId];
+      localStorage.setItem('appts', JSON.stringify(appts));
+      localStorage.setItem('agendamentos', JSON.stringify(agendamentos));
+      renderMeusAgendamentos();
+      gerarCalendario(mesAtual, anoAtual);
+      alert('Agendamento cancelado.');
+    }
+
+    /* ===== modal helpers ===== */
+    function showModal(id){ document.getElementById(id).style.display = 'flex'; }
+    function closeModal(id){ document.getElementById(id).style.display = 'none'; }
+
+    /* ===== helpers ===== */
+    function salvarPerfil(){
+      const nome = document.getElementById('perfilNome').value.trim();
+      const email = document.getElementById('perfilEmail').value.trim();
+      const senha = document.getElementById('perfilSenha').value;
+      const perfil = { nome, email, senha: senha ? '***' : null, savedAt: new Date().toISOString() };
+      localStorage.setItem('perfil', JSON.stringify(perfil));
+      alert('Perfil salvo (local).');
+    }
+
+    function renderSavedKitsOnStart(){
+      kitsPersonalizados = JSON.parse(localStorage.getItem('kitsPersonalizados') || '[]');
+      renderSavedKits();
+      populateKitSelect();
+    }
+
+    function renderMeusAgendamentosOnStart(){
+      apptsMap = JSON.parse(localStorage.getItem('appts') || '{}');
+      agendamentos = JSON.parse(localStorage.getItem('agendamentos') || '{}');
+      renderMeusAgendamentos();
+      gerarCalendario(mesAtual, anoAtual);
+    }
+
+    function generateId(prefix='id'){ return prefix + '_' + Date.now() + '_' + Math.floor(Math.random()*900+100); }
+    function limparAgendamento(){ document.getElementById('agHora').selectedIndex=0; document.getElementById('materiaisAg').value=''; dataSelecionada=null; document.getElementById('listaHorarios').style.display='none'; document.querySelectorAll('#calendario .cell').forEach(c=>c.classList.remove('dia-selecionado')); }
+
+    /* startup */
+    (function init(){
+      renderSavedKitsOnStart();
+      renderMeusAgendamentosOnStart();
+    })();
+  </script>
+</body>
+</html>
