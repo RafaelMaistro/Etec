@@ -1,0 +1,646 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Sistema de Agendamentos - Administrador</title>
+
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: Inter, "Segoe UI", Arial, Helvetica, sans-serif;
+      color: #222;
+      background: #f6f7f8;
+    }
+
+    header { width: 100%; position: absolute; top: 0; left: 0; }
+
+    .topo {
+      background: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      padding: 18px 24px;
+      height: 90px;
+    }
+
+    .logos img { height: 90px; display: block; }
+
+    .faixa-vinho{background:#b20000;color:#fff;height:56px;display:flex;align-items:center;justify-content:flex-end;padding-right:28px}
+
+    .faixa-vinho nav ul {
+      list-style: none;
+      display: flex;
+      gap: 28px;
+      align-items: center;
+    }
+
+    .faixa-vinho nav a {
+      color: #fff;
+      text-decoration: none;
+      font-weight: 600;
+      cursor: pointer;
+      padding: 10px;
+      border-radius: 8px;
+    }
+
+    .faixa-vinho nav a:hover { background: rgba(255,255,255,0.06); }
+
+    main {
+      padding: 24px;
+      max-width: 1200px;
+      margin: 160px auto 40px;
+    }
+
+    .container {
+      background: #fff;
+      border-radius: 10px;
+      padding: 20px;
+      box-shadow: 0 6px 18px rgba(20, 30, 50, 0.04);
+    }
+
+    .row { display: flex; gap: 20px; align-items: flex-start; }
+    .col-7 { flex: 0 0 70%; }
+    .col-3 { flex: 0 0 30%; }
+
+    h2 { font-size: 26px; margin-bottom: 12px; }
+
+    label { display: block; margin: 10px 0 6px; font-weight: 600; }
+
+    input[type=text],
+    input[type=email],
+    input[type=password],
+    select {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #dde3ea;
+      border-radius: 8px;
+      background: #fbfcfd;
+    }
+
+    button {
+      padding: 10px 14px;
+      border-radius: 8px;
+      border: 0;
+      cursor: pointer;
+    }
+
+    .btn-primary { background: #b20000; color: #fff; }
+    .btn-ghost { background: #f1f4f8; color: #222; border: 1px solid #e6e9ee; }
+
+    table { width: 100%; border-collapse: collapse; margin-top: 12px; }
+    th, td { padding: 12px; border-bottom: 1px solid #eef2f6; text-align: left; }
+    th { background: #fbfcfd; }
+
+    .sidebar-card {
+      background: #fff;
+      border: 1px solid #eef2f6;
+      padding: 14px;
+      border-radius: 8px;
+      margin-bottom: 14px;
+    }
+
+    @media(max-width:900px) {
+      .row { flex-direction: column; }
+      .col-7, .col-3 { flex: 1 1 auto; }
+    }
+
+    section.screen { display: none; }
+    section.screen.active { display: block; }
+
+    /* modal */
+    .modal {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.45);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+    }
+    .modal-content {
+      background: #fff;
+      padding: 20px;
+      border-radius: 10px;
+      max-width: 460px;
+      width: 94%;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.18);
+    }
+    .modal.active { display: flex; }
+    .modal-close { float: right; cursor: pointer; font-weight: bold; color: #b20000; }
+    .perfil-foto { width: 120px; height: 120px; border-radius: 50%; object-fit: cover; border: 2px solid #b20000; margin-bottom: 10px; }
+    .perfil-info { display:flex; flex-direction:column; align-items:center; }
+
+    /* abas internas */
+    .tabs { display:flex; gap:8px; margin-bottom:12px; flex-wrap:wrap; }
+    .tab {
+      padding: 8px 12px;
+      border-radius: 8px;
+      background: #f1f4f8;
+      cursor: pointer;
+      font-weight: 700;
+      color: #222;
+    }
+    .tab.active { background: #7a0000; color: #fff; }
+
+    /* busca específica */
+    .search-local {
+      display:flex;
+      gap:8px;
+      margin-bottom:12px;
+      align-items:center;
+    }
+    .search-local input { flex:1; padding:10px; border-radius:8px; border:1px solid #dde3ea; }
+
+    .muted { color:#6b6f76; font-size:13px; margin-top:4px; }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="topo">
+      <div class="logos">
+        <img src="https://i.ibb.co/fVS0Zjm5/imagem-2025-11-10-082221609.png" alt="Logos ETEC e CPS">
+      </div>
+    </div>
+
+    <div class="faixa-vinho">
+      <nav>
+        <ul>
+          <li><a href="#" data-screen="usuarios" class="nav-link">Usuários</a></li>
+          <li><a href="#" data-screen="materiais" class="nav-link">Materiais</a></li>
+          <li><a href="#" data-screen="historico" class="nav-link">Histórico</a></li>
+          <li><a href="#" data-screen="perfil" class="nav-link">Perfil</a></li>
+        </ul>
+      </nav>
+
+    </div>
+  </header>
+
+  <main>
+    <!-- USUÁRIOS -->
+    <section id="usuarios" class="screen active container">
+      <h2>Gerenciar Usuários</h2>
+
+      <!-- Abas internas (Todos / Professores / Administradores / Técnicos) -->
+      <div class="tabs" id="userTabs">
+        <div class="tab active" data-role="Todos">Todos</div>
+        <div class="tab" data-role="Professor">Professores</div>
+        <div class="tab" data-role="Administrador">Administradores</div>
+        <div class="tab" data-role="Técnico">Técnicos</div>
+      </div>
+
+      <!-- busca (dentro da aba ativa) -->
+      <div class="search-local">
+        <input id="searchLocal" type="text" placeholder="Procure aqui..." />
+        <div class="muted" id="searchHint">Todos: nome / matéria / função</div>
+      </div>
+
+      <div class="row">
+        <!-- lista (esquerda) -->
+        <div class="col-7">
+          <table id="tabelaUsuarios">
+            <thead>
+              <tr>
+                <th>Nome</th>
+                <th>Email</th>
+                <th>Função</th>
+                <th>Matéria</th>
+                <th>Ações</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+
+        <!-- dashboard / sidebar (direita) -->
+        <div class="col-3">
+          <!-- adicionar usuário -->
+          <div class="sidebar-card">
+            <h4>Novo Usuário</h4>
+
+            <label>Nome</label>
+            <input type="text" id="novoNome">
+
+            <label>Email</label>
+            <input type="email" id="novoEmail">
+
+            <label>Senha</label>
+            <input type="password" id="novoSenha">
+
+            <label>Função</label>
+            <select id="novoFunc" onchange="toggleMateria('novo')">
+              <option>Professor</option>
+              <option>Técnico</option>
+              <option>Administrador</option>
+            </select>
+
+            <div id="materiaNovoDiv">
+              <label>Matéria</label>
+              <input type="text" id="novoMateria">
+            </div>
+
+            <div style="margin-top:10px">
+              <button class="btn-primary" onclick="adicionarUsuario()">Adicionar</button>
+            </div>
+          </div>
+
+          
+        </div>
+      </div>
+    </section>
+
+    <!-- MATERIAIS -->
+    <section id="materiais" class="screen container">
+      <h2>Gerenciar Materiais</h2>
+      <div class="row">
+        <div class="col-7">
+          <table>
+            <thead>
+              <tr><th>Nome</th><th>Quantidade</th><th>Unidade</th></tr>
+            </thead>
+            <tbody id="materiaisTbody">
+              <tr><td>Becker</td><td>10</td><td>un</td></tr>
+              <tr><td>Ácido clorídrico</td><td>5</td><td>lt</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="col-3">
+          <div class="sidebar-card">
+            <h4>Adicionar / Atualizar</h4>
+            <label>Nome</label><input type="text" id="matName">
+            <label>Quantidade</label><input type="text" id="matQtd">
+            <label>Unidade</label><input type="text" id="matUni">
+            <div style="margin-top:8px"><button class="btn-primary" onclick="adicionarMaterial()">Salvar</button></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- HISTÓRICO -->
+    <section id="historico" class="screen container">
+      <h2>Histórico de Uso</h2>
+      <table>
+        <thead>
+          <tr><th>Data</th><th>Material</th><th>Quantidade</th><th>Usuário</th><th>Ação</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>2025-09-01</td><td>Becker</td><td>2</td><td>Maria (Técnico)</td><td>Separado</td></tr>
+          <tr><td>2025-08-28</td><td>Ácido clorídrico</td><td>100mL</td><td>João (Professor)</td><td>Utilizado</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- PERFIL (página separada) -->
+    <section id="perfil" class="screen container">
+      <h2>Perfil</h2>
+      <div class="perfil-info">
+        <img id="perfilFoto" class="perfil-foto" src="" alt="Foto de Perfil">
+        <p><strong>Nome:</strong> <span id="perfilNome"></span></p>
+        <p><strong>Email:</strong> <span id="perfilEmail"></span></p>
+        <div style="margin-top:12px">
+          <button class="btn-primary" onclick="abrirModalPerfil()">Editar Perfil</button>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Modal Edição Usuário -->
+  <div id="editModal" class="modal">
+    <div class="modal-content">
+      <span class="modal-close" onclick="fecharModal()">&times;</span>
+      <h3>Editar Usuário</h3>
+
+      <label>Nome</label>
+      <input type="text" id="editNome">
+
+      <label>Email</label>
+      <input type="email" id="editEmail">
+
+      <label>Senha</label>
+      <input type="password" id="editSenha">
+
+      <label>Função</label>
+      <select id="editFunc" onchange="toggleMateria('edit')">
+        <option>Professor</option>
+        <option>Técnico</option>
+        <option>Administrador</option>
+      </select>
+
+      <div id="materiaEditDiv">
+        <label>Matéria</label>
+        <input type="text" id="editMateria">
+      </div>
+
+      <div style="margin-top:10px;text-align:right">
+        <button class="btn-primary" onclick="salvarEdicao()">Salvar</button>
+        <button class="btn-ghost" onclick="fecharModal()">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Perfil -->
+  <div id="modalPerfil" class="modal">
+    <div class="modal-content">
+      <span class="modal-close" onclick="fecharModalPerfil()">&times;</span>
+      <h3>Editar Perfil</h3>
+
+      <label>Nome</label>
+      <input type="text" id="novoPerfilNome">
+
+      <label>Email</label>
+      <input type="email" id="novoPerfilEmail">
+
+      <label>Foto</label>
+      <input type="file" id="novoPerfilFoto" accept="image/*">
+
+      <div style="margin-top:10px;text-align:right">
+        <button class="btn-primary" onclick="salvarPerfil()">Salvar</button>
+        <button class="btn-ghost" onclick="fecharModalPerfil()">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /* navegação principal (header) */
+    document.querySelectorAll('.faixa-vinho nav a').forEach(link => {
+      link.addEventListener('click', e => {
+        e.preventDefault();
+        const tela = link.getAttribute('data-screen');
+        if (!tela) return;
+        showScreen(tela);
+      });
+    });
+
+    function showScreen(id) {
+      document.querySelectorAll('section.screen').forEach(s => s.classList.remove('active'));
+      const el = document.getElementById(id);
+      if (el) el.classList.add('active');
+      document.querySelectorAll('.faixa-vinho nav a').forEach(a => a.classList.toggle('active', a.getAttribute('data-screen') === id));
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    /* abas internas */
+    const tabs = document.querySelectorAll('.tab');
+    let activeRole = 'Todos'; // default
+
+    tabs.forEach(t => {
+      t.addEventListener('click', () => {
+        tabs.forEach(x => x.classList.remove('active'));
+        t.classList.add('active');
+        activeRole = t.getAttribute('data-role');
+        // atualiza dica de busca
+        updateSearchHint();
+        // limpa campo de busca quando troca de aba (opcional)
+        document.getElementById('searchLocal').value = '';
+        renderUsuarios();
+      });
+    });
+
+    function updateSearchHint() {
+      const hint = document.getElementById('searchHint');
+      if (activeRole === 'Professor') hint.textContent = 'Pesquisar por nome ou matéria (apenas Professores)';
+      else if (activeRole === 'Administrador' || activeRole === 'Técnico') hint.textContent = 'Pesquisar por nome (apenas nesta aba)';
+      else hint.textContent = 'Pesquisar por nome / matéria / função (Todos)';
+    }
+    updateSearchHint();
+
+    /* LocalStorage: Usuários */
+    let usuarios = JSON.parse(localStorage.getItem('usuarios') || '[]');
+    let editIndex = null;
+
+    function salvarUsuarios() {
+      localStorage.setItem('usuarios', JSON.stringify(usuarios));
+      renderUsuarios();
+      atualizarPerfilSidebar();
+    }
+
+    // função que verifica se um usuário bate com o filtro dependendo da aba ativa
+    function matchesFilterByRole(u, filtro) {
+      if (!filtro) return true;
+      const f = filtro.toLowerCase();
+      if (activeRole === 'Professor') {
+        // apenas professores na aba; procurar por nome OU matéria
+        return (u.nome || '').toLowerCase().includes(f) || (u.materia || '').toLowerCase().includes(f);
+      } else if (activeRole === 'Administrador' || activeRole === 'Técnico') {
+        // procurar apenas por nome
+        return (u.nome || '').toLowerCase().includes(f);
+      } else { // Todos
+        return (u.nome || '').toLowerCase().includes(f) ||
+               (u.materia || '').toLowerCase().includes(f) ||
+               (u.funcao || '').toLowerCase().includes(f);
+      }
+    }
+
+    function renderUsuarios() {
+      const filtro = document.getElementById('searchLocal').value.trim();
+      const tbody = document.querySelector('#tabelaUsuarios tbody');
+      tbody.innerHTML = '';
+
+      usuarios.forEach((u, i) => {
+        // filtrar por aba ativa
+        if (activeRole !== 'Todos' && u.funcao !== activeRole) return;
+        // filtrar por pesquisa
+        if (!matchesFilterByRole(u, filtro)) return;
+
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${escapeHtml(u.nome)}</td>
+          <td>${escapeHtml(u.email)}</td>
+          <td>${escapeHtml(u.funcao)}</td>
+          <td>${escapeHtml(u.materia || '-')}</td>
+          <td class="actions">
+            <button class="btn-ghost" onclick="abrirModal(${i})">✏️</button>
+            <button class="btn-ghost" onclick="excluirUsuario(${i})">🗑️</button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      if (tbody.children.length === 0) {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td colspan="5" style="text-align:center;color:#777;padding:18px">Nenhum usuário encontrado na aba <strong>${activeRole}</strong>.</td>`;
+        tbody.appendChild(tr);
+      }
+    }
+
+    // escape básico
+    function escapeHtml(text) {
+      if (!text && text !== '') return '';
+      return String(text)
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#39;');
+    }
+
+    /* adicionar usuário */
+    function adicionarUsuario() {
+      const nome = document.getElementById('novoNome').value.trim();
+      const email = document.getElementById('novoEmail').value.trim();
+      const senha = document.getElementById('novoSenha').value.trim();
+      const func = document.getElementById('novoFunc').value;
+      const materia = (func === 'Professor') ? document.getElementById('novoMateria').value.trim() : '';
+
+      if (!nome || !email || !senha) { alert('Preencha todos os campos'); return; }
+
+      usuarios.push({ nome, email, senha, funcao: func, materia });
+      salvarUsuarios();
+
+      document.getElementById('novoNome').value = '';
+      document.getElementById('novoEmail').value = '';
+      document.getElementById('novoSenha').value = '';
+      document.getElementById('novoMateria').value = '';
+      alert('Usuário adicionado!');
+    }
+
+    /* editar / excluir */
+    function abrirModal(i) {
+      editIndex = i;
+      const u = usuarios[i];
+      document.getElementById('editNome').value = u.nome;
+      document.getElementById('editEmail').value = u.email;
+      document.getElementById('editSenha').value = u.senha;
+      document.getElementById('editFunc').value = u.funcao;
+      document.getElementById('editMateria').value = u.materia || '';
+      toggleMateria('edit');
+      document.getElementById('editModal').classList.add('active');
+    }
+    function fecharModal() { document.getElementById('editModal').classList.remove('active'); }
+
+    function salvarEdicao() {
+      if (editIndex === null) return;
+      const nome = document.getElementById('editNome').value.trim();
+      const email = document.getElementById('editEmail').value.trim();
+      const senha = document.getElementById('editSenha').value.trim();
+      const func = document.getElementById('editFunc').value;
+      const materia = (func === 'Professor') ? document.getElementById('editMateria').value.trim() : '';
+
+      if (!nome || !email || !senha) { alert('Preencha todos os campos'); return; }
+
+      usuarios[editIndex] = { nome, email, senha, funcao: func, materia };
+      salvarUsuarios();
+      fecharModal();
+      alert('Usuário atualizado!');
+    }
+
+    function excluirUsuario(i) {
+      if (confirm('Deseja realmente excluir este usuário?')) {
+        usuarios.splice(i, 1);
+        salvarUsuarios();
+      }
+    }
+
+    /* pesquisa local (dentro da aba) */
+    document.getElementById('searchLocal').addEventListener('input', () => {
+      renderUsuarios();
+    });
+
+    /* toggle matéria visível somente para Professor */
+    function toggleMateria(tipo) {
+      const select = document.getElementById(tipo === 'novo' ? 'novoFunc' : 'editFunc');
+      const div = document.getElementById(tipo === 'novo' ? 'materiaNovoDiv' : 'materiaEditDiv');
+      if (select.value === 'Professor') div.style.display = 'block';
+      else div.style.display = 'none';
+    }
+    toggleMateria('novo'); toggleMateria('edit');
+
+    /* materiais */
+    function adicionarMaterial() {
+      const nome = document.getElementById('matName').value.trim();
+      const qtd = document.getElementById('matQtd').value.trim();
+      const uni = document.getElementById('matUni').value.trim();
+      if (!nome || !qtd || !uni) { alert('Preencha todos os campos'); return; }
+      const tbody = document.getElementById('materiaisTbody');
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td>${escapeHtml(nome)}</td><td>${escapeHtml(qtd)}</td><td>${escapeHtml(uni)}</td>`;
+      tbody.appendChild(tr);
+      document.getElementById('matName').value = '';
+      document.getElementById('matQtd').value = '';
+      document.getElementById('matUni').value = '';
+      alert('Material salvo!');
+    }
+
+    /* Perfil (salva no localStorage) */
+    let perfil = JSON.parse(localStorage.getItem('perfil') || '{}');
+
+    function carregarPerfil() {
+      const nome = perfil.nome || "Admin Nome";
+      const email = perfil.email || "admin@email.com";
+      const foto = perfil.foto || "https://via.placeholder.com/120x120.png?text=Foto";
+      document.getElementById('perfilNome').textContent = nome;
+      document.getElementById('perfilEmail').textContent = email;
+      document.getElementById('perfilFoto').src = foto;
+
+      // também preenche o card do sidebar
+      document.getElementById('perfilNomeSidebar').textContent = nome;
+      document.getElementById('perfilEmailSidebar').textContent = email;
+      document.getElementById('perfilFotoSidebar').src = foto;
+    }
+
+    function abrirModalPerfil() {
+      document.getElementById('modalPerfil').classList.add('active');
+      document.getElementById('novoPerfilNome').value = perfil.nome || "Admin Nome";
+      document.getElementById('novoPerfilEmail').value = perfil.email || "admin@email.com";
+    }
+
+    function fecharModalPerfil() { document.getElementById('modalPerfil').classList.remove('active'); }
+
+    function salvarPerfil() {
+      const nome = document.getElementById('novoPerfilNome').value.trim();
+      const email = document.getElementById('novoPerfilEmail').value.trim();
+      const fileInput = document.getElementById('novoPerfilFoto');
+
+      if (!nome || !email) { alert('Preencha todos os campos'); return; }
+
+      if (fileInput.files && fileInput.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          perfil.foto = e.target.result;
+          perfil.nome = nome;
+          perfil.email = email;
+          localStorage.setItem('perfil', JSON.stringify(perfil));
+          carregarPerfil();
+          fecharModalPerfil();
+          alert('Perfil atualizado!');
+        };
+        reader.readAsDataURL(fileInput.files[0]);
+      } else {
+        perfil.nome = nome;
+        perfil.email = email;
+        localStorage.setItem('perfil', JSON.stringify(perfil));
+        carregarPerfil();
+        fecharModalPerfil();
+        alert('Perfil atualizado!');
+      }
+    }
+
+    function atualizarPerfilSidebar() {
+      // função simples para manter sidebar sincronizado
+      carregarPerfil();
+    }
+
+    /* inicialização */
+    // se quiser popular com exemplos uma vez, descomente o bloco abaixo
+    // if (!usuarios.length) {
+    //   usuarios = [
+    //     { nome: 'João Silva', email: 'joao@escola.com', senha: '123', funcao: 'Professor', materia: 'Química' },
+    //     { nome: 'Ana Pereira', email: 'ana@escola.com', senha: '123', funcao: 'Professor', materia: 'Matemática' },
+    //     { nome: 'Carlos Lima', email: 'carlos@escola.com', senha: '123', funcao: 'Administrador', materia: '' },
+    //     { nome: 'Mariana Costa', email: 'mariana@escola.com', senha: '123', funcao: 'Técnico', materia: '' }
+    //   ];
+    //   localStorage.setItem('usuarios', JSON.stringify(usuarios));
+    // }
+
+    renderUsuarios();
+    carregarPerfil();
+
+    // set header ativo (Usuários)
+    document.querySelectorAll('.faixa-vinho nav a').forEach(a => a.classList.toggle('active', a.getAttribute('data-screen') === 'usuarios'));
+  </script>
+</body>
+</html>
