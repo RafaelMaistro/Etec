@@ -1,0 +1,1504 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Sistema de Agendamentos - Administrador</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: Inter, "Segoe UI", Arial, Helvetica, sans-serif; color: #222; background: #f6f7f8; }
+header { width: 100%; position: absolute; top: 0; left: 0; }
+.topo { background: #fff; display: flex; align-items: center; justify-content: flex-start; padding: 18px 24px; height: 80px; }
+.logos img { height: 55px; display: block; }
+.faixa-vinho { background:#b20000;color:#fff;height:56px;display:flex;align-items:center;justify-content:flex-end;padding-right:28px }
+.faixa-vinho nav ul { list-style: none; display: flex; gap: 28px; align-items: center; }
+.faixa-vinho nav a { color: #fff; text-decoration: none; font-weight: 600; cursor: pointer; padding: 10px; border-radius: 8px; }
+.faixa-vinho nav a:hover, .faixa-vinho nav a.active { background: rgba(255,255,255,0.15); }
+main { padding: 24px; max-width: 1200px; margin: 160px auto 40px; }
+.container { background: #fff; border-radius: 10px; padding: 20px; box-shadow: 0 6px 18px rgba(20, 30, 50, 0.04); }
+.row { display: flex; gap: 20px; align-items: flex-start; }
+.col-7 { flex: 0 0 70%; }
+.col-3 { flex: 0 0 30%; }
+h2 { font-size: 26px; margin-bottom: 12px; }
+label { display: block; margin: 10px 0 6px; font-weight: 600; }
+input[type=text], input[type=email], input[type=password], select { width: 100%; padding: 10px; border: 1px solid #dde3ea; border-radius: 8px; background: #fbfcfd; }
+button { padding: 10px 14px; border-radius: 8px; border: 0; cursor: pointer; }
+.btn-primary { background: #b20000; color: #fff; }
+.btn-ghost { background: #fff; color: #222; border: 1px solid #e6e9ee; }
+table { width: 100%; border-collapse: collapse; margin-top: 12px; }
+th, td { padding: 12px; border-bottom: 1px solid #eef2f6; text-align: left; vertical-align: middle; }
+th { background: #fbfcfd; }
+.sidebar-card { background: #fff; border: 1px solid #eef2f6; padding: 14px; border-radius: 8px; margin-bottom: 14px; }
+section.screen { display: none; }
+section.screen.active { display: block; }
+.muted { color:#6b6f76; font-size:13px; margin-top:4px; }
+.modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.45); display: none; align-items: center; justify-content: center; z-index: 100; }
+.modal-content { background: #fff; padding: 20px; border-radius: 10px; max-width: 460px; width: 94%; box-shadow: 0 8px 24px rgba(0,0,0,0.18); }
+.modal.active { display: flex; }
+.modal-close { float: right; cursor: pointer; font-weight: bold; color: #b20000; }
+.separator { font-weight: bold; text-align: left; padding: 6px; border-bottom: 1px solid #ddd; background: #fff; }
+.status-badge { padding:6px 8px; border-radius:8px; font-weight:600; }
+.status-pendente { background:#fff4e6;color:#9a5a00;border:1px solid #ffe2b8; }
+.status-resolvido { background:#e6ffef;color:#05603a;border:1px solid #c6f6d9; }
+
+
+.tab-control { display:flex; gap:10px; margin-bottom:12px; }
+.tab-control .btn { padding:8px 12px; border-radius:8px; font-weight:700; }
+.tab-active { background:#b20000; color:#fff; border:0; }
+.tab-inactive { background:#fff; color:#222; border:1px solid #e6e9ee; }
+.search-input { width:100%; padding:10px; border-radius:8px; border:1px solid #dde3ea; margin-bottom:12px; }
+
+
+.textarea-resolucao { width:100%; min-height:120px; padding:10px; border-radius:8px; border:1px solid #dde3ea; resize:vertical; margin-top:8px; }
+.small-muted { font-size:12px;color:#666;margin-top:6px; }
+.action-row { display:flex; gap:8px; justify-content:flex-end; margin-top:12px; }
+.btn-secondary { background:#f1f4f8;color:#222;border:1px solid #e6e9ee;padding:8px 12px;border-radius:8px;cursor:pointer; }
+
+
+</style>
+</head>
+<body>
+
+<div vw class="enabled">
+  <div vw-access-button class="active"></div>
+  <div vw-plugin-wrapper>
+    <div class="vw-plugin-top-wrapper"></div>
+  </div>
+</div>
+
+<script src="https://vlibras.gov.br/app/vlibras-plugin.js"></script>
+<script>
+  new window.VLibras.Widget('https://vlibras.gov.br/app');
+</script>
+
+
+<header>
+  <div class="topo">
+      <div class="logos"><img src="Screenshot 2025-10-20 075927.png" alt="Logo"></div>
+      <div style="flex:1">
+      <strong>Sistema de Agendamento - Administrador</strong>
+      <div class="muted">ETEC Júlio de Mesquita</div>
+    </div>
+    </div>
+  <div class="faixa-vinho">
+    <nav>
+      <ul>
+        <li><a href="#" data-screen="usuarios" class="nav-link active">Usuários</a></li>
+        <li><a href="#" data-screen="materiais" class="nav-link">Materiais</a></li>
+        <li><a href="#" data-screen="historico" class="nav-link">Histórico</a></li>
+        <li><a href="#" data-screen="problemas" class="nav-link">Problemas</a></li>
+        <li><a href="#" data-screen="perfil" class="nav-link">Perfil</a></li>
+        <li>
+  <button onclick="sair()" 
+    style="
+      background: #fff;
+      color: #b20000;
+      border: none;
+      padding: 6px 14px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;">
+    Sair
+  </button>
+</li>
+
+      </ul>
+    </nav>
+  </div>
+</header>
+
+<main>
+
+  <section id="usuarios" class="screen active container">
+    <h2>Gerenciar Usuários</h2>
+    <input type="text" id="searchUsuario" placeholder="Pesquisar por nome, função ou matéria..." style="width:100%;padding:10px;border:1px solid #ccc;border-radius:8px;margin-bottom:10px">
+    <div class="row">
+      <div class="col-7">
+        <table id="tabelaUsuarios">
+          <thead>
+            <tr><th>Nome</th><th>Email</th><th>Função</th><th>Matéria</th><th>Ações</th></tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <div class="col-3">
+        <div class="sidebar-card">
+          <h4>Novo Usuário</h4>
+          <label>Nome</label><input type="text" id="novoNome">
+          <label>Email</label><input type="email" id="novoEmail">
+          <label>Senha</label><input type="password" id="novoSenha">
+          <label>Função</label>
+          <select id="novoFunc" onchange="toggleMateria('novo')">
+            <option>Professor</option><option>Técnico</option><option>Administrador</option>
+          </select>
+          <div id="materiaNovoDiv">
+            <label>Matéria</label><input type="text" id="novoMateria">
+          </div>
+          <div style="margin-top:10px"><button class="btn-primary" onclick="adicionarUsuario()">Adicionar</button></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <section id="materiais" class="screen container">
+    <h2>Gerenciar Materiais</h2>
+    <div class="row">
+      <div class="col-7">
+        <table id="tabelaMateriais">
+          <thead>
+            <tr><th>Nome</th><th>Quantidade</th><th>Unidade</th><th>Tipo</th><th>Ações</th></tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <div class="col-3">
+        <div class="sidebar-card">
+          <h4>Novo Material</h4>
+          <label>Nome do Material</label><input type="text" id="novoMaterialNome">
+          <label>Quantidade</label><input type="text" id="novoMaterialQtd">
+          <label>Unidade</label><input type="text" id="novoMaterialUn">
+          <label>Tipo</label>
+          <select id="novoMaterialTipo">
+            <option>Vidraria</option>
+            <option>Reagente</option>
+          </select>
+          <div style="margin-top:10px"><button class="btn-primary" onclick="adicionarMaterial()">Adicionar</button></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  
+  
+  <section id="historico" class="screen container">
+    <h2>Histórico de uso</h2>
+    <input id="searchUso" class="search-input" placeholder="Pesquisar por material, professor ou data..." style="width:320px; margin-bottom:12px;">
+    <div id="tbodyUso"></div>
+  </section>
+
+
+  <section id="problemas" class="screen container">
+    <h2>Problemas Reportados</h2>
+    <p style="margin-bottom:10px;color:#555">Gerencie os relatos dos técnicos. Você pode marcar como resolvido ou remover.</p>
+
+  
+    <input type="text" id="searchProblema" class="search-input" placeholder="Pesquisar por descrição ou técnico...">
+
+    
+    <div class="tab-control">
+      <button id="tabPendentes" class="tab-active tab-btn" onclick="mudarAbaProblemas('Pendente')">
+        Pendentes (<span id="countPendentes">0</span>)
+      </button>
+      <button id="tabResolvidos" class="tab-inactive tab-btn" onclick="mudarAbaProblemas('Resolvido')">
+        Resolvidos (<span id="countResolvidos">0</span>)
+      </button>
+    </div>
+
+    <table id="tabelaProblemas">
+      <thead>
+        <tr><th>Descrição</th><th>Reportado por</th><th>Status</th><th>Ações</th></tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </section>
+
+
+
+  
+<section id="perfil" class="screen container" style="display:none; text-align:center;">
+
+  <h2 style="margin-bottom:25px;">Meu Perfil</h2>
+
+  
+  <div style="
+      width: 160px;
+      height: 160px;
+      border-radius: 50%;
+      overflow: hidden;
+      border: 4px solid #b20000;
+      margin: 0 auto 18px auto;">
+    <img id="perfilFoto" 
+         src="https://via.placeholder.com/160"
+         style="width:100%; height:100%; object-fit:cover;">
+  </div>
+
+  
+  <p style="font-size:18px; margin-bottom:4px;">
+    <strong>Nome:</strong> <span id="perfilNome">Carregando...</span>
+  </p>
+  <p style="font-size:18px; margin-bottom:20px;">
+    <strong>Email:</strong> <span id="perfilEmail">Carregando...</span>
+  </p>
+
+  <button class="btn-primary" onclick="abrirModalPerfil()" 
+          style="padding:10px 20px; font-size:16px; margin-top:10px;">
+    Editar Perfil
+  </button>
+
+</section>
+
+
+<div class="modal" id="modalPerfil">
+  <div class="modal-content" style="max-width:450px;">
+    <span class="modal-close" onclick="fecharModalPerfil()">&times;</span>
+    <h3>Editar Perfil</h3>
+
+    <label>Nome</label>
+    <input type="text" id="editPerfilNome">
+
+    <label>Email</label>
+    <input type="email" id="editPerfilEmail">
+
+    <label>Nova Foto</label>
+    <input type="file" id="editPerfilFoto" accept="image/*">
+
+    <button class="btn-primary" style="margin-top:12px;"
+            onclick="salvarPerfilEditado()">Salvar</button>
+  </div>
+</div>
+
+
+
+
+<div class="modal" id="modalEditarMaterial">
+  <div class="modal-content">
+    <span class="modal-close" onclick="fecharModalMaterial()">&times;</span>
+    <h3>Editar Material</h3>
+    <label>Nome</label><input type="text" id="editNome">
+    <label>Quantidade</label><input type="text" id="editQtd">
+    <label>Unidade</label><input type="text" id="editUn">
+    <label>Tipo</label>
+    <select id="editTipo">
+      <option>Vidraria</option>
+      <option>Reagente</option>
+    </select>
+    <button class="btn-primary" style="margin-top:10px" onclick="salvarEdicaoMaterial()">Salvar</button>
+  </div>
+</div>
+
+<div class="modal" id="modalEditarUsuario">
+  <div class="modal-content">
+    <span class="modal-close" onclick="fecharModalUsuario()">&times;</span>
+    <h3>Editar Usuário</h3>
+    <label>Nome</label><input type="text" id="editUsuarioNome">
+    <label>Email</label><input type="email" id="editUsuarioEmail">
+    <label>Senha</label><input type="password" id="editUsuarioSenha">
+    <label>Função</label>
+    <select id="editUsuarioFunc" onchange="toggleMateria('edit')">
+      <option>Professor</option>
+      <option>Técnico</option>
+      <option>Administrador</option>
+    </select>
+    <div id="materiaEditDiv">
+      <label>Matéria</label><input type="text" id="editUsuarioMateria">
+    </div>
+    <button class="btn-primary" style="margin-top:10px" onclick="salvarEdicaoUsuario()">Salvar</button>
+  </div>
+</div>
+
+
+<div class="modal" id="modalResolucao">
+  <div class="modal-content">
+    <span class="modal-close" onclick="fecharModalResolucao()">&times;</span>
+    <h3>Marcar problema como resolvido</h3>
+    <p class="small-muted" id="resolucaoContextInfo">Informe a descrição da solução aplicada.</p>
+    <label>Descrição da resolução</label>
+    <textarea id="inputResolucao" class="textarea-resolucao" placeholder="Descreva o que foi feito para resolver o problema..."></textarea>
+    <div class="action-row">
+      <button class="btn-secondary" onclick="fecharModalResolucao()">Cancelar</button>
+      <button class="btn-primary" onclick="salvarResolucao()">Salvar e Marcar como Resolvido</button>
+    </div>
+  </div>
+</div>
+
+
+<div class="modal" id="modalVerResolucao">
+  <div class="modal-content">
+    <span class="modal-close" onclick="fecharModalVerResolucao()">&times;</span>
+    <h3>Resolução</h3>
+    <p class="small-muted" id="verResolucaoContext"></p>
+    <div style="margin-top:10px">
+      <label>Descrição registrada</label>
+      <textarea id="verResolucaoTexto" class="textarea-resolucao" readonly></textarea>
+    </div>
+    <div class="action-row">
+      <button class="btn-primary" onclick="fecharModalVerResolucao()">Fechar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+
+let usuarios = [];
+let editUsuarioIndex = -1;
+
+
+async function carregarUsuarios() {
+  try {
+    const res = await fetch('http://localhost:3000/usuarios');
+    usuarios = await res.json();
+    localStorage.setItem('usuarios', JSON.stringify(usuarios));
+    renderUsuarios();
+  } catch (err) {
+    console.error('Erro ao carregar usuários:', err);
+    usuarios = JSON.parse(localStorage.getItem('usuarios') || '[]');
+    renderUsuarios();
+  }
+}
+
+function toggleMateria(tipo){
+  const select = document.getElementById(tipo==='novo'?'novoFunc':'editUsuarioFunc');
+  const div = document.getElementById(tipo==='novo'?'materiaNovoDiv':'materiaEditDiv');
+  if(select && div) div.style.display = select.value==='Professor'?'block':'none';
+}
+function salvarUsuarios(){ localStorage.setItem('usuarios',JSON.stringify(usuarios)); renderUsuarios(); }
+
+async function adicionarUsuario() {
+  const nome = (document.getElementById('novoNome').value || '').trim();
+  const email = (document.getElementById('novoEmail').value || '').trim();
+  const senha = (document.getElementById('novoSenha').value || '').trim();
+  const func = document.getElementById('novoFunc').value;
+  const materia = func === 'Professor' ? (document.getElementById('novoMateria').value || '').trim() : '';
+
+  if (!nome || !email || !senha) return alert('Preencha todos os campos.');
+
+  try {
+    const res = await fetch('http://localhost:3000/usuarios', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ nome, email, senha, funcao: func, materia })
+    });
+    if (!res.ok) throw new Error('Erro ao adicionar usuário.');
+    alert('Usuário adicionado com sucesso!');
+    await carregarUsuarios();
+  } catch (err) {
+    console.error('Erro ao adicionar usuário:', err);
+    alert('Falha ao adicionar usuário.');
+  }
+
+
+  document.getElementById('novoNome').value = '';
+  document.getElementById('novoEmail').value = '';
+  document.getElementById('novoSenha').value = '';
+  document.getElementById('novoMateria').value = '';
+}
+
+function abrirEditarUsuario(i) {
+  editUsuarioIndex = i;
+  const u = usuarios[i];
+  if (!u) return alert('Usuário não encontrado.');
+
+  document.getElementById('editUsuarioNome').value = u.nome;
+  document.getElementById('editUsuarioEmail').value = u.email;
+  document.getElementById('editUsuarioSenha').value = u.senha || '';
+  document.getElementById('editUsuarioFunc').value = u.funcao;
+  document.getElementById('editUsuarioMateria').value = u.materia || '';
+  toggleMateria('edit');
+
+  document.getElementById('modalEditarUsuario').classList.add('active');
+}
+
+
+function fecharModalUsuario() {
+  document.getElementById('modalEditarUsuario').classList.remove('active');
+}
+
+
+async function salvarEdicaoUsuario() {
+  if (editUsuarioIndex < 0) return;
+  const u = usuarios[editUsuarioIndex];
+  if (!u) return alert('Usuário não encontrado.');
+
+  const nome = (document.getElementById('editUsuarioNome').value || '').trim();
+  const email = (document.getElementById('editUsuarioEmail').value || '').trim();
+  const senha = (document.getElementById('editUsuarioSenha').value || '').trim();
+  const funcao = document.getElementById('editUsuarioFunc').value;
+  const materia = funcao === 'Professor' ? (document.getElementById('editUsuarioMateria').value || '').trim() : '';
+
+  try {
+    await fetch(`http://localhost:3000/usuarios/${u._id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ nome, email, senha, funcao, materia })
+    });
+
+    alert('Usuário atualizado com sucesso!');
+    fecharModalUsuario();
+    await carregarUsuarios();
+  } catch (err) {
+    console.error('Erro ao atualizar usuário:', err);
+    alert('Falha ao atualizar usuário.');
+  }
+}
+
+
+async function excluirUsuario(i) {
+  const u = usuarios[i];
+  if (!u) return alert('Usuário não encontrado.');
+  if (!confirm(`Excluir usuário "${u.nome}"?`)) return;
+
+  try {
+    await fetch(`http://localhost:3000/usuarios/${u._id}`, { method: 'DELETE' });
+    alert('Usuário excluído com sucesso!');
+    await carregarUsuarios();
+  } catch (err) {
+    console.error('Erro ao excluir usuário:', err);
+    alert('Falha ao excluir usuário.');
+  }
+}
+
+function renderUsuarios(){
+  const tbody = document.querySelector('#tabelaUsuarios tbody');
+  const busca = (document.getElementById('searchUsuario').value || '').toLowerCase();
+  tbody.innerHTML = '';
+  const grupos = ['Professor','Técnico','Administrador'];
+  grupos.forEach(grupo => {
+    const filtrados = usuarios.filter(u => u.funcao===grupo && (u.nome.toLowerCase().includes(busca) || u.funcao.toLowerCase().includes(busca) || (u.materia && u.materia.toLowerCase().includes(busca))));
+    if(filtrados.length>0){
+      const sep = document.createElement('tr');
+      sep.innerHTML = `<td colspan="5" class="separator">${grupo}</td>`;
+      tbody.appendChild(sep);
+      filtrados.forEach(u=>{
+        const i = usuarios.indexOf(u);
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>${u.nome}</td><td>${u.email}</td><td>${u.funcao}</td><td>${u.materia||'-'}</td>
+          <td><button class="btn-ghost" onclick="abrirEditarUsuario(${i})">✏️</button> <button class="btn-ghost" onclick="excluirUsuario(${i})">🗑️</button></td>`;
+        tbody.appendChild(tr);
+      });
+    }
+  });
+  if(!tbody.innerHTML) tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;color:#777">Nenhum usuário encontrado.</td></tr>`;
+}
+document.getElementById('searchUsuario').addEventListener('input', renderUsuarios);
+
+
+if(!localStorage.getItem('materiais')) localStorage.setItem('materiais', JSON.stringify([]));
+let materiais = JSON.parse(localStorage.getItem('materiais')) || [];
+let editIndex = -1;
+
+
+async function salvarMateriais() {
+  localStorage.setItem('materiais', JSON.stringify(materiais));
+  localStorage.setItem('estoqueTecnico', JSON.stringify(materiais));
+  renderMateriais();
+
+  try {
+    for (const m of materiais) {
+      if (!m._id) continue;
+      await fetch(`http://localhost:3000/materiais/${m._id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(m)
+      });
+    }
+  } catch (e) {
+    console.warn('⚠️ Falha ao sincronizar materiais com o servidor:', e);
+  }
+}
+
+
+
+function abrirModalEdicao(i) {
+  editIndex = i;
+  const m = materiais[i];
+  if (!m) return alert('Material não encontrado.');
+  document.getElementById('editNome').value = m.nome;
+  document.getElementById('editQtd').value = m.quantidade;
+  document.getElementById('editUn').value = m.unidade;
+  document.getElementById('editTipo').value = m.tipo || 'Vidraria';
+  document.getElementById('modalEditarMaterial').classList.add('active');
+}
+
+function fecharModalMaterial() {
+  document.getElementById('modalEditarMaterial').classList.remove('active');
+}
+
+async function salvarEdicaoMaterial() {
+  if (editIndex < 0) return;
+  const m = materiais[editIndex];
+  if (!m) return alert('Material não encontrado.');
+
+  m.nome = (document.getElementById('editNome').value || '').trim();
+  m.quantidade = (document.getElementById('editQtd').value || '').trim();
+  m.unidade = (document.getElementById('editUn').value || '').trim();
+  m.tipo = document.getElementById('editTipo').value;
+
+  try {
+    if (m._id) {
+      await fetch(`http://localhost:3000/materiais/${m._id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(m)
+      });
+    }
+    salvarMateriais();
+    fecharModalMaterial();
+    alert('Material atualizado com sucesso!');
+  } catch (err) {
+    console.error('Erro ao salvar edição:', err);
+    alert('Falha ao atualizar material.');
+  }
+}
+
+async function excluirMaterial(i) {
+  const m = materiais[i];
+  if (!m) return alert('Material não encontrado.');
+  if (!confirm(`Excluir material "${m.nome}"?`)) return;
+
+  try {
+    if (m._id) {
+      await fetch(`http://localhost:3000/materiais/${m._id}`, { method: 'DELETE' });
+    }
+    materiais.splice(i, 1);
+    salvarMateriais();
+    alert('Material excluído com sucesso!');
+  } catch (err) {
+    console.error('Erro ao excluir material:', err);
+    alert('Falha ao excluir material.');
+  }
+}
+
+function renderMateriais() {
+  const tbody = document.querySelector('#tabelaMateriais tbody');
+  tbody.innerHTML = '';
+  if (materiais.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;color:#777">Nenhum material cadastrado.</td></tr>`;
+    return;
+  }
+
+  const tipos = [...new Set(materiais.map(m => m.tipo || '-'))];
+  tipos.forEach(tipo => {
+    const filtrados = materiais.filter(m => (m.tipo || '-') === tipo);
+    if (filtrados.length > 0) {
+      const sep = document.createElement('tr');
+      sep.innerHTML = `<td colspan="5" class="separator">${tipo}</td>`;
+      tbody.appendChild(sep);
+      filtrados.forEach((m, i) => {
+        const idx = materiais.indexOf(m);
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${m.nome}</td>
+          <td>${m.quantidade}</td>
+          <td>${m.unidade}</td>
+          <td>${m.tipo}</td>
+          <td>
+            <button class="btn-ghost" onclick="abrirModalEdicao(${idx})">✏️</button>
+            <button class="btn-ghost" onclick="excluirMaterial(${idx})">🗑️</button>
+          </td>`;
+        tbody.appendChild(tr);
+      });
+    }
+  });
+}
+
+
+if(!localStorage.getItem('problemas')) localStorage.setItem('problemas', JSON.stringify([]));
+let problemas = JSON.parse(localStorage.getItem('problemas')) || [];
+let abaAtualProblemas = 'Pendente'; 
+
+function salvarProblemas() {
+  localStorage.setItem('problemas', JSON.stringify(problemas));
+}
+
+
+function renderProblemas() {
+  const tbody = document.querySelector('#tabelaProblemas tbody');
+  if(!tbody) return;
+  tbody.innerHTML = '';
+
+  const busca = (document.getElementById('searchProblema').value || '').toLowerCase();
+
+  const pendentes = problemas.filter(p => (p.status || 'Pendente') !== 'Resolvido');
+  const resolvidos = problemas.filter(p => (p.status || 'Pendente') === 'Resolvido');
+
+
+  document.getElementById('countPendentes').textContent = pendentes.length;
+  document.getElementById('countResolvidos').textContent = resolvidos.length;
+
+  const lista = (abaAtualProblemas === 'Pendente' ? pendentes : resolvidos)
+    .filter(p => {
+      const desc = (p.descricao || p.titulo || '').toLowerCase();
+      const tecnico = (p.tecnico || p.autor || p.reportadoPor || '').toLowerCase();
+      return desc.includes(busca) || tecnico.includes(busca);
+    });
+
+  if(lista.length === 0){
+    tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;color:#777">Nenhum problema ${abaAtualProblemas === 'Pendente' ? 'pendente' : 'resolvido'} encontrado.</td></tr>`;
+    return;
+  }
+
+  lista.forEach((p) => {
+    const descricao = p.descricao || p.titulo || '-';
+    const autor = p.autor || p.tecnico || p.reportadoPor || '-';
+    const status = p.status || 'Pendente';
+    const statusClass = status === 'Resolvido' ? 'status-resolvido' : 'status-pendente';
+    const indexOriginal = problemas.indexOf(p);
+
+    const tr = document.createElement('tr');
+
+    if (status !== 'Resolvido') {
+      tr.innerHTML = `
+        <td style="max-width:440px">${descricao}</td>
+        <td style="width:180px">${autor}</td>
+        <td style="width:140px"><span class="status-badge ${statusClass}">${status}</span></td>
+        <td style="width:260px">
+          <button class="btn-primary" onclick="abrirModalResolucao(${indexOriginal})">Marcar como resolvido</button>
+        </td>`;
+    } else {
+      const temResolucao = !!p.resolucao;
+      const verBtn = temResolucao ? `<button class="btn-ghost" onclick="verResolucao(${indexOriginal})">🔍</button>` : '';
+      tr.innerHTML = `
+        <td style="max-width:440px">${descricao}</td>
+        <td style="width:180px">${autor}</td>
+        <td style="width:140px"><span class="status-badge ${statusClass}">${status}</span></td>
+        <td style="width:260px">
+          ${verBtn}
+          <button class="btn-ghost" onclick="removerProblema(${indexOriginal})">🗑️ Excluir</button>
+        </td>`;
+    }
+
+    tbody.appendChild(tr);
+  });
+}
+
+function mudarAbaProblemas(novaAba) {
+  abaAtualProblemas = novaAba;
+  document.getElementById('tabPendentes').className = novaAba === 'Pendente' ? 'tab-active tab-btn' : 'tab-inactive tab-btn';
+  document.getElementById('tabResolvidos').className = novaAba === 'Resolvido' ? 'tab-active tab-btn' : 'tab-inactive tab-btn';
+  renderProblemas();
+}
+
+
+let contextoResolucaoIndex = null;
+function abrirModalResolucao(index) {
+  contextoResolucaoIndex = index;
+  const p = problemas[index];
+  const info = p ? `${p.descricao ? p.descricao.slice(0,80) : '(sem descrição)'} — ${p.tecnico || p.autor || '-'}` : '';
+  document.getElementById('resolucaoContextInfo').textContent = 'Relato: ' + info;
+  document.getElementById('inputResolucao').value = p && p.resolucao ? p.resolucao : '';
+  document.getElementById('modalResolucao').classList.add('active');
+}
+
+
+function fecharModalResolucao() {
+  contextoResolucaoIndex = null;
+  document.getElementById('inputResolucao').value = '';
+  document.getElementById('modalResolucao').classList.remove('active');
+}
+
+
+async function salvarResolucao() {
+  try {
+    console.log("Index:", contextoResolucaoIndex);
+    console.log("Problemas:", problemas);
+
+    if (contextoResolucaoIndex === null || contextoResolucaoIndex === undefined) {
+      alert("Erro: Nenhum problema selecionado.");
+      return;
+    }
+
+    const p = problemas[contextoResolucaoIndex];
+    if (!p || !p._id) {
+      alert("Problema não identificado");
+      return;
+    }
+
+    const text = document.getElementById('inputResolucao').value.trim();
+
+    await fetch(`http://localhost:3000/problemas/${p._id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ resolucao: text, status: 'Resolvido' })
+    });
+
+    p.resolucao = text;
+    p.status = "Resolvido";
+
+    salvarProblemas();
+    fecharModalResolucao();
+    renderProblemas();
+
+    alert("Problema marcado como resolvido!");
+
+  } catch (e) {
+    console.error("salvarResolucao error", e);
+    alert("Erro ao salvar resolução");
+  }
+}
+
+
+
+function verResolucao(index) {
+  const p = problemas[index];
+  if (!p) return alert('Problema não encontrado.');
+  document.getElementById('verResolucaoContext').textContent = `Relato: ${p.descricao || '(sem descrição)'} — Reportado por: ${p.tecnico || p.autor || '-'}`;
+  document.getElementById('verResolucaoTexto').value = p.resolucao || '(nenhuma descrição registrada)';
+  document.getElementById('modalVerResolucao').classList.add('active');
+}
+function fecharModalVerResolucao() {
+  document.getElementById('modalVerResolucao').classList.remove('active');
+}
+
+
+function marcarResolvido(index) {
+  if (!problemas[index]) return;
+  if (!confirm('Marcar este problema como resolvido?')) return;
+  problemas[index].status = 'Resolvido';
+  problemas[index].resolvidoEm = new Date().toISOString();
+  salvarProblemas();
+  renderProblemas();
+  alert('Problema marcado como resolvido!');
+}
+
+
+async function removerProblema(index) {
+  const p = problemas[index];
+  if (!p) return alert("Problema não encontrado.");
+
+  if (!confirm("Excluir este problema permanentemente?")) return;
+
+  try {
+
+    await fetch(`http://localhost:3000/problemas/${p._id}`, {
+      method: "DELETE"
+    });
+
+   
+    problemas.splice(index, 1);
+    salvarProblemas();
+    renderProblemas();
+
+    alert("Problema excluído com sucesso!");
+  } catch (err) {
+    console.error("Erro ao excluir problema:", err);
+    alert("Falha ao excluir problema no servidor.");
+  }
+}
+
+
+function copiarProblema(i) {
+  const p = problemas[i];
+  if (!p) return;
+  const descricao = p.descricao || p.titulo || '';
+  const autor = p.autor || p.tecnico || '-';
+  const data = p.data ? new Date(p.data).toLocaleString() : (p.dataFmt || '-');
+  const status = p.status || 'Pendente';
+  const text = `Relato: ${descricao}\nTécnico: ${autor}\nData: ${data}\nStatus: ${status}\n\n${p.descricao || ''}`;
+  navigator.clipboard?.writeText(text).then(() => alert('Relato copiado para a área de transferência.'), () => {
+    prompt('Copie o texto abaixo:', text);
+  });
+}
+
+
+function enviarMensagem(i) {
+  const p = problemas[i];
+  if (!p) return;
+  alert(`Mensagem para ${p.tecnico || p.autor || 'Técnico'}\n\n(implemente integração de chat aqui)`);
+}
+
+
+window.addEventListener('storage', (e) => {
+  if (e.key === 'problemas') {
+    try {
+      problemas = JSON.parse(localStorage.getItem('problemas')) || [];
+    } catch (err) {
+      problemas = [];
+    }
+    renderProblemas();
+  }
+
+  if (e.key === 'historico' || e.key === 'uso' || e.key === 'movimentacoes') {
+    renderHistorico(); 
+    renderUso();       
+  }
+});
+
+function showSubAba(id) {
+  const abas = document.querySelectorAll(".subaba");
+  abas.forEach(a => a.style.display = "none");
+
+  const alvo = document.getElementById(id);
+  if (alvo) alvo.style.display = "block";
+
+ 
+  if (id === "historico-uso") {
+    renderHistorico();
+  }
+}
+
+
+
+renderUsuarios();
+renderMateriais();
+renderProblemas();
+
+
+
+document.getElementById('searchProblema').addEventListener('input', renderProblemas);
+
+
+function formatDateTime(raw) {
+  if(!raw) return '(sem data)';
+  try {
+    
+    const d = new Date(raw);
+    if (isNaN(d)) return String(raw);
+    const dd = String(d.getDate()).padStart(2,'0');
+    const mm = String(d.getMonth()+1).padStart(2,'0');
+    const yyyy = d.getFullYear();
+    const hh = String(d.getHours()).padStart(2,'0');
+    const min = String(d.getMinutes()).padStart(2,'0');
+    return `${dd}/${mm}/${yyyy} ${hh}:${min}`;
+  } catch (err) {
+    return String(raw);
+  }
+}
+
+
+
+
+
+
+
+
+carregarUsuarios();
+
+</script>
+
+<script>
+
+const API_BASE = 'http://localhost:3000';
+
+async function syncFromServer() {
+  try {
+   
+    const [usuariosRes, materiaisRes, problemasRes, agendamentosRes] = await Promise.all([
+      fetch(API_BASE + '/usuarios'),
+      fetch(API_BASE + '/materiais'),
+      fetch(API_BASE + '/problemas'),
+      fetch(API_BASE + '/agendamentos')
+    ]);
+    const usuarios = await usuariosRes.json();
+    const materiais = await materiaisRes.json();
+    const problemas = await problemasRes.json();
+    const agendamentos = await agendamentosRes.json();
+    
+    localStorage.setItem('usuarios', JSON.stringify(usuarios));
+    localStorage.setItem('materiais', JSON.stringify(materiais));
+    localStorage.setItem('problemas', JSON.stringify(problemas));
+    
+    const appts = {};
+    agendamentos.forEach(a => { appts[a._id] = a; });
+    localStorage.setItem('appts', JSON.stringify(appts));
+    localStorage.setItem('agendamentos', JSON.stringify(agendamentos));
+    console.log('[bridge] synced from server');
+    
+    if(window.renderUsuarios) try{ window.renderUsuarios(JSON.parse(localStorage.getItem('usuarios'))); }catch(e){}
+    if(window.renderMateriais) try{ window.renderMateriais(); }catch(e){}
+    if(window.renderProblemas) try{ window.renderProblemas(); }catch(e){}
+    if(window.renderCurrentTab) try{ window.renderCurrentTab(); }catch(e){}
+    if(window.gerarCalendario) try{ window.gerarCalendario(window.mesAtual || new Date().getMonth(), window.anoAtual || new Date().getFullYear()); }catch(e){}
+  } catch(err) {
+    console.error('[bridge] erro ao sincronizar:', err);
+  }
+}
+
+
+async function fazerLogin() {
+  try {
+    const tipo = (document.getElementById('tipo')?document.getElementById('tipo').value: null) || (document.querySelector('#tipo')?document.querySelector('#tipo').value: null);
+    const login = (document.getElementById('login')?document.getElementById('login').value.trim(): (document.getElementById('perfilEmail')?document.getElementById('perfilEmail').value.trim():''));
+    const senha = (document.getElementById('senha')?document.getElementById('senha').value.trim():'');
+    const resultado = document.getElementById('resultado');
+    if(!login || !senha) { if(resultado){ resultado.style.display='block'; resultado.style.color='red'; resultado.textContent='Preencha todos os campos.';} return; }
+    const res = await fetch(API_BASE + '/usuarios');
+    const usuarios = await res.json();
+    const usuario = usuarios.find(u => u.email === login && u.senha === senha && u.funcao === tipo);
+    if(!usuario) {
+      if(resultado){ resultado.style.display='block'; resultado.style.color='red'; resultado.textContent='Usuário não cadastrado ou dados incorretos.'; }
+      return;
+    }
+    sessionStorage.setItem('currentUser', JSON.stringify(usuario));
+    if(resultado){ resultado.style.display='block'; resultado.style.color='green'; resultado.textContent=`Login bem-sucedido como ${tipo}.`; }
+    
+    setTimeout(()=> {
+      if(tipo === 'Administrador') window.location.href = 'Administrador.html';
+      else if(tipo === 'Professor') window.location.href = 'professor.html';
+      else window.location.href = 'Tecnico.html';
+    }, 600);
+  } catch(e){
+    console.error('fazerLogin error', e);
+  }
+}
+
+
+async function adicionarUsuario() {
+  try {
+    const nome = (document.getElementById('novoNome')?document.getElementById('novoNome').value.trim():'');
+    const email = (document.getElementById('novoEmail')?document.getElementById('novoEmail').value.trim():'');
+    const senha = (document.getElementById('novoSenha')?document.getElementById('novoSenha').value.trim():'');
+    const func = (document.getElementById('novoFunc')?document.getElementById('novoFunc').value:'Professor');
+    const materia = func==='Professor' ? (document.getElementById('novoMateria')?document.getElementById('novoMateria').value.trim():'') : '';
+    if(!nome||!email||!senha) return alert('Preencha todos os campos');
+    await fetch(API_BASE + '/usuarios', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({nome,email,senha,funcao:func,materia}) });
+    await syncFromServer();
+    if(document.getElementById('novoNome')){ document.getElementById('novoNome').value=''; document.getElementById('novoEmail').value=''; document.getElementById('novoSenha').value=''; }
+    alert('Usuário adicionado (servidor).');
+  } catch(e){ console.error('adicionarUsuario', e); alert('Erro ao adicionar usuário'); }
+}
+
+
+async function adicionarMaterial() {
+  try {
+    const nome = document.getElementById('novoMaterialNome').value.trim();
+    const qtd = parseFloat(document.getElementById('novoMaterialQtd').value) || 0;
+    const un = document.getElementById('novoMaterialUn').value.trim();
+    const tipo = document.getElementById('novoMaterialTipo').value;
+
+    if (!nome) return alert('Informe o nome do material');
+
+    
+    await fetch(API_BASE + '/materiais', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        nome,
+        quantidade: qtd,
+        unidade: un,
+        tipo
+      })
+    });
+
+ 
+    const res = await fetch(API_BASE + "/materiais");
+    materiais = await res.json();
+
+    
+    localStorage.setItem("materiais", JSON.stringify(materiais));
+
+   
+    renderMateriais();
+
+   
+    document.getElementById('novoMaterialNome').value = "";
+    document.getElementById('novoMaterialQtd').value = "";
+    document.getElementById('novoMaterialUn').value = "";
+
+    alert('Material adicionado com sucesso!');
+    
+  } catch (e) {
+    console.error('adicionarMaterial', e);
+    alert('Erro ao adicionar material');
+  }
+}
+
+
+
+async function reportarProblema() {
+  try {
+    const descricao = (document.getElementById('descricaoProblema')?document.getElementById('descricaoProblema').value.trim():'');
+    const tecnico = (document.getElementById('tecnicoNome')?document.getElementById('tecnicoNome').value.trim(): 'Técnico');
+    if(!descricao) return alert('Descreva o problema');
+    await fetch(API_BASE + '/problemas', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({descricao, tecnico, status:'Pendente'})});
+    await syncFromServer();
+    if(document.getElementById('descricaoProblema')) document.getElementById('descricaoProblema').value='';
+    alert('Problema reportado (servidor).');
+  } catch(e){ console.error('reportarProblema', e); alert('Erro ao reportar problema'); }
+}
+
+
+async function criarAgendamento() {
+  try {
+    
+    const laboratorio = (document.getElementById('labSelect')?document.getElementById('labSelect').value:'Lab. 1');
+    const data = (window.dataSelecionada || document.getElementById('perfilData')?document.getElementById('perfilData').value: (new Date()).toISOString().slice(0,10));
+    const hora = (document.getElementById('agHora')?document.getElementById('agHora').value:'');
+    const professor = (JSON.parse(sessionStorage.getItem('currentUser')||'{}').nome) || (document.getElementById('perfilNome')?document.getElementById('perfilNome').value:'Professor');
+    const materiais = (document.getElementById('materiaisAg')?document.getElementById('materiaisAg').value.split(',').map(s=>s.trim()).filter(s=>s):[]);
+    if(!hora) return alert('Selecione um horário');
+    await fetch(API_BASE + '/agendamentos', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({laboratorio,data,hora,professor,materiais,status:'Pendente'})});
+    await syncFromServer();
+    alert('Agendamento criado (servidor).');
+  } catch(e){ console.error('criarAgendamento', e); alert('Erro ao criar agendamento'); }
+}
+
+
+async function salvarResolucao(problemaId, resolucaoText) {
+  try {
+    
+    const text = (resolucaoText !== undefined && resolucaoText !== null)
+      ? String(resolucaoText).trim()
+      : (document.getElementById('inputResolucao') ? document.getElementById('inputResolucao').value.trim() : '');
+
+    
+    let id = null;
+
+    
+    if (problemaId !== undefined && problemaId !== null) {
+      
+      if (typeof problemaId === 'number' || (/^\d+$/.test(String(problemaId)))) {
+        const idx = Number(problemaId);
+        if (problemas[idx] && problemas[idx]._id) id = problemas[idx]._id;
+      } else {
+        
+        const s = String(problemaId);
+        if (/^[0-9a-fA-F]{24}$/.test(s)) id = s;
+        else {
+          const found = problemas.find(p => p._id === s);
+          if (found) id = found._id;
+        }
+      }
+    }
+
+    
+    if (!id && (typeof contextoResolucaoIndex === 'number')) {
+      const p = problemas[contextoResolucaoIndex];
+      if (p && p._id) id = p._id;
+    }
+
+  
+    if (!id && document.getElementById('currentProblemaId')) {
+      const cur = document.getElementById('currentProblemaId').value;
+      if (/^[0-9a-fA-F]{24}$/.test(String(cur))) id = cur;
+      else if (/^\d+$/.test(String(cur))) {
+        const idx = Number(cur);
+        if (problemas[idx] && problemas[idx]._id) id = problemas[idx]._id;
+      }
+    }
+
+    if (!id) {
+      alert('Problema não identificado');
+      return;
+    }
+
+    
+    const res = await fetch(`${API_BASE}/problemas/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ resolucao: text, status: 'Resolvido' })
+    });
+
+    if (!res.ok) {
+      const txt = await res.text().catch(()=>null);
+      console.error('PUT /problemas/:id retornou erro', res.status, txt);
+      alert('Falha ao marcar problema no servidor.');
+      return;
+    }
+
+    
+    const localIndex = problemas.findIndex(p => p._id === id);
+    if (localIndex !== -1) {
+      problemas[localIndex].resolucao = text;
+      problemas[localIndex].status = 'Resolvido';
+      problemas[localIndex].resolvidoEm = new Date().toISOString();
+      salvarProblemas();
+    } else {
+      
+      await syncFromServer();
+    }
+
+    fecharModalResolucao();
+    renderProblemas();
+    alert('Problema marcado como resolvido!');
+
+  } catch (e) {
+    console.error('salvarResolucao error', e);
+    alert('Erro ao salvar resolução');
+  }
+}
+
+
+document.addEventListener('DOMContentLoaded', ()=>{ setTimeout(syncFromServer, 300); });
+
+async function renderHistorico() {
+  const container = document.getElementById("tbodyUso");
+  if (!container) return;
+
+  container.innerHTML = "<p>Carregando...</p>";
+
+  try {
+    const res = await fetch("http://localhost:3000/agendamentos");
+    const ags = await res.json();
+
+    
+    const separados = ags.filter(a => a.status === "Separado");
+
+    container.innerHTML = "";
+
+    if (separados.length === 0) {
+      container.innerHTML = "<p style='color:#777;'>Nenhum agendamento separado.</p>";
+      return;
+    }
+
+    for (const ag of separados) {
+
+     
+      let kit = null;
+      if (ag.kitId) {
+        const resKit = await fetch("http://localhost:3000/kits/kit/" + ag.kitId);
+        kit = await resKit.json();
+      }
+
+      const dataFmt = ag.data?.split("-").reverse().join("/") || "Sem data";
+
+     
+      const card = document.createElement("div");
+      card.style.cssText = `
+        background:#fff;
+        padding:15px;
+        border-radius:10px;
+        margin:12px 0;
+        box-shadow:0 2px 10px rgba(0,0,0,0.12);
+      `;
+
+      card.innerHTML = `
+        <h3>📅 ${dataFmt}</h3>
+        <p><strong>Professor:</strong> ${ag.professor}</p>
+        <p><strong>Laboratório:</strong> ${ag.laboratorio}</p>
+        <p><strong>Horário:</strong> ${ag.hora}</p>
+        <h4 style="margin-top:12px;">Materiais do Kit</h4>
+      `;
+
+      
+      if (!kit || !kit.items || kit.items.length === 0) {
+        card.innerHTML += `<p style="color:#999;">Nenhum material no kit.</p>`;
+      } else {
+        kit.items.forEach(item => {
+          const nome = item.name || item.nome || "Item";
+          const unit = item.unit || "";
+          const qtd  = item.qtySelected ?? "-";
+
+          card.innerHTML += `
+            <div style="
+              display:flex;
+              justify-content:space-between;
+              padding:6px 0;
+              border-bottom:1px solid #eee;
+            ">
+              <span>${nome} ${unit ? "(" + unit + ")" : ""}</span>
+              <strong>${qtd}</strong>
+            </div>
+          `;
+        });
+      }
+
+      container.appendChild(card);
+    }
+
+  } catch (err) {
+    console.error(err);
+    container.innerHTML = "<p style='color:red;'>Erro ao carregar histórico.</p>";
+  }
+}
+
+
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.style.display = 'none');
+
+  const scr = document.getElementById(id);
+  if (scr) scr.style.display = 'block';
+
+  
+  document.querySelectorAll('.nav-link').forEach(a => a.classList.remove('active'));
+  document.querySelector(`[data-screen="${id}"]`).classList.add('active');
+
+  if (id === "historico") renderHistorico();
+  if (id === "perfil") carregarPerfil();
+}
+
+
+
+
+window.addEventListener('load', () => {
+  const hist = document.getElementById('historico');
+  if (hist) hist.style.display = 'none';
+
+  function hideAll() {
+    document.querySelectorAll('.screen').forEach(s => s.style.display='none');
+  }
+
+  window.showScreen = function(id) {
+    hideAll();
+    const scr = document.getElementById(id);
+    if (scr) scr.style.display='block';
+    if (id === 'historico' && typeof renderHistorico === 'function') renderHistorico();
+  };
+
+  document.querySelectorAll('[data-screen]').forEach(a => {
+    a.addEventListener('click', e => {
+      e.preventDefault();
+      showScreen(a.dataset.screen);
+    });
+  });
+});
+
+
+
+
+
+const API_URL = "http://localhost:3000";
+let userLogado = null;
+
+
+function ensureCurrentUserFromStorage() {
+  try {
+    const sess = JSON.parse(sessionStorage.getItem("currentUser") || "null");
+    if (sess && sess.email) {
+      sessionStorage.setItem("currentUser", JSON.stringify(sess));
+      return sess;
+    }
+  } catch (e) { }
+
+  
+  try {
+    const usuariosLocal = JSON.parse(localStorage.getItem("usuarios") || "[]");
+    if (Array.isArray(usuariosLocal) && usuariosLocal.length) {
+      
+      const adm = usuariosLocal.find(u => (u.funcao || u.func) === "Administrador" || (u.funcao || '').toLowerCase() === 'administrador');
+      const chosen = adm || usuariosLocal[0];
+      if (chosen) {
+        sessionStorage.setItem("currentUser", JSON.stringify(chosen));
+        return chosen;
+      }
+    }
+  } catch(e) {  }
+
+  return null;
+}
+
+
+async function carregarPerfil() {
+  try {
+    const stored = JSON.parse(sessionStorage.getItem("currentUser") || "null") || ensureCurrentUserFromStorage();
+
+    if (!stored || !stored.email) {
+      document.getElementById("perfilNome").textContent = "Convidado";
+      document.getElementById("perfilEmail").textContent = "-";
+      document.getElementById("perfilFoto").src = "https://via.placeholder.com/160";
+      userLogado = null;
+      return;
+    }
+
+    try {
+      const res = await fetch(API_URL + "/usuarios");
+      if (res.ok) {
+        const lista = await res.json();
+        userLogado = lista.find(u => u.email === stored.email) || stored;
+      } else {
+        userLogado = stored;
+      }
+    } catch (err) {
+      userLogado = stored;
+    }
+
+    if (!userLogado) {
+      document.getElementById("perfilNome").textContent = "Convidado";
+      document.getElementById("perfilEmail").textContent = "-";
+      document.getElementById("perfilFoto").src = "https://via.placeholder.com/160";
+      return;
+    }
+
+    document.getElementById("perfilNome").textContent = userLogado.nome || "Sem nome";
+    document.getElementById("perfilEmail").textContent = userLogado.email || "-";
+
+    let foto = userLogado.foto || userLogado.avatar;
+
+    if (foto) {
+      if (!foto.startsWith("http")) {
+        foto = `http://localhost:3000${foto}`;
+      }
+      document.getElementById("perfilFoto").src = foto;
+    } else {
+      document.getElementById("perfilFoto").src = "https://via.placeholder.com/160";
+    }
+
+    sessionStorage.setItem("currentUser", JSON.stringify(userLogado));
+
+  } catch (err) {
+    console.error("Erro carregar perfil:", err);
+  }
+}
+
+
+function abrirModalPerfil() {
+
+  if (!userLogado) {
+   
+    carregarPerfil().then(() => {
+      if (!userLogado) {
+        alert('Nenhum usuário logado para editar.');
+        return;
+      }
+      document.getElementById("editPerfilNome").value = userLogado.nome || "";
+      document.getElementById("editPerfilEmail").value = userLogado.email || "";
+      document.getElementById("modalPerfil").classList.add("active");
+    });
+    return;
+  }
+
+  document.getElementById("editPerfilNome").value = userLogado.nome || "";
+  document.getElementById("editPerfilEmail").value = userLogado.email || "";
+  document.getElementById("modalPerfil").classList.add("active");
+}
+
+
+function fecharModalPerfil() {
+  document.getElementById("modalPerfil").classList.remove("active");
+}
+
+
+async function salvarPerfilEditado() {
+  if (!userLogado || !userLogado._id) {
+    alert("Usuário não identificado.");
+    return;
+  }
+
+  const nome = document.getElementById("editPerfilNome").value.trim();
+  const email = document.getElementById("editPerfilEmail").value.trim();
+  const foto = document.getElementById("editPerfilFoto").files[0];
+
+  if (!nome || !email) {
+    alert("Preencha nome e email.");
+    return;
+  }
+
+  const formData = new FormData();
+  formData.append("nome", nome);
+  formData.append("email", email);
+
+ 
+  if (foto) {
+    formData.append("foto", foto);
+  }
+
+  try {
+    const res = await fetch(`http://localhost:3000/usuarios/${userLogado._id}`, {
+      method: "PUT",
+      body: formData   
+    });
+
+    if (!res.ok) {
+      throw new Error("Erro ao atualizar perfil");
+    }
+
+    const updatedUser = await res.json();
+    userLogado = updatedUser;
+
+
+    document.getElementById("perfilNome").textContent = updatedUser.nome;
+    document.getElementById("perfilEmail").textContent = updatedUser.email;
+
+  
+    if (updatedUser.foto) {
+      document.getElementById("perfilFoto").src = `http://localhost:3000${updatedUser.foto}`;
+    }
+
+   
+    sessionStorage.setItem("currentUser", JSON.stringify(updatedUser));
+
+   fecharModalPerfil();
+alert("Perfil atualizado com sucesso!");
+
+
+document.querySelectorAll(".screen").forEach(s => s.style.display = "none");
+document.getElementById("perfil").style.display = "block";
+
+
+document.querySelectorAll(".nav-link").forEach(a => a.classList.remove("active"));
+
+
+document.querySelector('[data-screen="perfil"]').classList.add("active");
+
+
+  } catch (err) {
+    console.error(err);
+    alert("Erro ao salvar perfil (ver console)");
+  }
+}
+
+
+
+
+document.addEventListener("DOMContentLoaded", () => {
+  
+  ensureCurrentUserFromStorage();
+  carregarPerfil().catch(e => console.warn('carregarPerfil init falhou', e));
+});
+
+
+setInterval(() => {
+  if (document.getElementById('usuarios').classList.contains('active')) {
+    carregarUsuarios();
+  }
+
+  if (document.getElementById('materiais').classList.contains('active')) {
+    carregarMateriais();
+  }
+
+  if (document.getElementById('problemas').classList.contains('active')) {
+    carregarProblemas();
+  }
+
+  if (document.getElementById('historico').classList.contains('active')) {
+    carregarHistorico();
+  }
+}, 2000);
+
+
+window.addEventListener("storage", (event) => {
+  if (event.key === "materiais") {
+
+    
+    if (typeof carregarMateriais === 'function') {
+      carregarMateriais();
+    }
+
+    
+    if (typeof carregarMateriaisKits === 'function') {
+      carregarMateriaisKits();
+    }
+
+    
+    if (typeof carregarTudo === 'function') {
+      carregarTudo();
+    }
+
+  }
+});
+
+
+
+const canalSync = new BroadcastChannel("sync_mongo_etec");
+
+canalSync.onmessage = async (event) => {
+  if (event.data === "materiais_atualizados") {
+    console.log("🔄 Atualizando materiais automaticamente...");
+
+    const res = await fetch(window.API_BASE + "/materiais");
+    const dados = await res.json();
+
+    if (typeof materiais !== "undefined") {
+      materiais = dados;
+    }
+
+    if (typeof carregarMateriais === "function") {
+      carregarMateriais();
+    }
+
+    if (typeof carregarTudo === "function") {
+      carregarTudo();
+    }
+  }
+};
+
+function sair() {
+  localStorage.clear();
+  window.location.href = "login.html"; 
+}
+
+
+</script>
+
+</body>
+</html>

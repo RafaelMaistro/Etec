@@ -1,0 +1,1643 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Sistema de Agendamentos - Técnico (Materiais)</title>
+<style>
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: Inter, "Segoe UI", Arial, Helvetica, sans-serif; color: #222; background: #f6f7f8; line-height: 1.35; }
+header { width: 100%; position: fixed; top: 0; left: 0; z-index: 50; }
+.topo { background: #fff; display: flex; align-items: center; justify-content: flex-start; padding: 14px 20px; height: 70px; border-bottom: 1px solid #eee; }
+.logos img { height: 48px; display: block; }
+.faixa-vinho { background: #b20000; color: #fff; height: 52px; display: flex; align-items: center; justify-content: flex-end; padding-right: 28px; }
+.faixa-vinho nav ul { display:flex; gap:18px; list-style:none; padding-right:6px; }
+.faixa-vinho nav a { color:#fff; text-decoration:none; font-weight:600; cursor:pointer; padding:8px; border-radius:8px; }
+.faixa-vinho nav a:hover { background:rgba(255,255,255,0.06); }
+main { padding: 110px 20px 40px; max-width: 1200px; margin:0 auto; }
+.container { background:#fff; border-radius:10px; padding:18px; box-shadow:0 6px 18px rgba(20,30,50,0.04); margin-bottom:18px; }
+h2 { font-size:20px; margin-bottom:10px; }
+.tabs { display:flex; gap:8px; margin-bottom:12px; }
+.tab { padding:8px 12px; border-radius:8px; cursor:pointer; border:1px solid #eee; background:#f9fafb; font-weight:700; }
+.tab.active { background:#b20000; color:#fff; border-color:transparent; }
+.flex { display:flex; gap:18px; align-items:flex-start; }
+.col { flex:1; }
+.col-3 { flex:0 0 320px; }
+table { width:100%; border-collapse:collapse; margin-top:8px; }
+th, td { padding:8px; border-bottom:1px solid #eef2f6; text-align:left; font-size:14px; vertical-align:middle; }
+th { background:#fbfcfd; }
+.btn { padding:7px 10px; border-radius:8px; border:0; cursor:pointer; font-weight:600; transition:0.2s; }
+.btn:hover { opacity:0.85; transform:scale(1.05); }
+.btn-primary { background:#b20000; color:#fff; border:1px solid #a00000; }
+.btn-ghost { background:#f1f4f8; color:#222; border:1px solid #e6e9ee; }
+.btn-sm { padding:6px 8px; font-size:13px; border-radius:6px; }
+.sidebar-card { background:#fff; border:1px solid #eef2f6; padding:12px; border-radius:8px; }
+label { display:block; font-size:13px; margin:8px 0 4px; }
+input[type=text], select, textarea { width:100%; padding:8px; border-radius:6px; border:1px solid #ddd; font-size:14px; }
+textarea { min-height:88px; resize:vertical; }
+.section-title { display:flex; align-items:center; justify-content:space-between; gap:12px; }
+.badge { background:#eef6ff; color:#0b63b8; padding:4px 8px; border-radius:999px; font-size:13px; }
+.muted { color:#667085; font-size:13px; }
+.category-header { background:#f9fafb; border:1px solid #e5e9ef; border-radius:8px; padding:6px 10px; margin-top:16px; font-weight:700; color:#444; }
+.report-form { display:flex; flex-direction:column; gap:8px; margin-top:8px; }
+.report-list { margin-top:12px; }
+.status-badge { padding:4px 8px; border-radius:6px; font-size:13px; display:inline-block; }
+.status-pendente { background:#fff4e6; color:#9a5a00; border:1px solid #ffe2b8; }
+.status-resolvido { background:#e6ffef; color:#05603a; border:1px solid #c6f6d9; }
+@media(max-width:980px) { .flex { flex-direction:column; } .col-3 { flex:1; } }
+.modal-backdrop { position:fixed; inset:0; background:rgba(0,0,0,0.45); display:none; align-items:center; justify-content:center; z-index:200; }
+.modal { background:#fff; border-radius:10px; padding:18px; min-width:320px; max-width:680px; box-shadow:0 10px 30px rgba(0,0,0,0.2); }
+.modal h3 { margin-bottom:8px; }
+.modal .footer { display:flex; justify-content:flex-end; gap:8px; margin-top:12px; }
+
+
+#modalVerResolucaoTech .modal-content { max-width:720px; width:92%; }
+.textarea-read { width:100%; min-height:120px; padding:10px; border-radius:8px; border:1px solid #ddd; background:#f7f9fb; resize:vertical; }
+.small-muted { color:#666; font-size:13px; margin-top:6px; }
+#confirmarSeparacao {
+  cursor: pointer !important;
+}
+
+</style>
+</head>
+<body>
+
+<div vw class="enabled">
+  <div vw-access-button class="active"></div>
+  <div vw-plugin-wrapper>
+    <div class="vw-plugin-top-wrapper"></div>
+  </div>
+</div>
+
+<script src="https://vlibras.gov.br/app/vlibras-plugin.js"></script>
+<script>
+  new window.VLibras.Widget('https://vlibras.gov.br/app');
+</script>
+
+
+<header>
+  <div class="topo">
+    <div class="logos" style="margin-right:18px">
+      <img src="Screenshot 2025-10-20 075927.png" alt="Logo">
+    </div>
+    <div style="flex:1">
+      <strong>Sistema de Agendamentos - Técnico</strong>
+      <div class="muted">Painel de Materiais — Vidrarias e Reagentes</div>
+    </div>
+  </div>
+  <div class="faixa-vinho">
+    <nav>
+      <ul>
+        <li><a href="#" data-screen="materiais" class="active">Materiais</a></li>
+        <li><a href="#" data-screen="pedidos">Pedidos</a></li>
+        <li><a href="#" data-screen="historico">Reportar Problemas</a></li>
+        <li><a href="#" data-screen="perfil">Perfil</a></li>
+        <li>
+  <button onclick="sair()" 
+    style="
+      background: #fff;
+      color: #b20000;
+      border: none;
+      padding: 6px 14px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;">
+    Sair
+  </button>
+</li>
+
+      </ul>
+    </nav>
+  </div>
+</header>
+
+<main>
+
+<section id="materiais" class="container">
+  <div class="section-title">
+    <h2>Materiais — Estoque Técnico</h2>
+    <div class="top-actions">
+      <span class="badge" id="totalEstoque">Estoque: 0</span>
+      <span class="badge" id="totalUso" style="background:#fff;color:#b20000;border:1px solid #f3d7d7;margin-left:8px">Em Uso: 0</span>
+    </div>
+  </div>
+
+  <div style="margin-bottom:8px">
+  <div class="muted">Visualização: <strong>Estoque</strong></div>
+</div>
+
+<div id="tab-conteudo"></div>
+
+
+  <div class="flex" style="margin-top:14px">
+    <div class="col">
+      <div class="sidebar-card">
+        <h4>Pesquisar e Filtros</h4>
+        <label>Buscar por nome</label>
+        <input id="search" type="text" placeholder="Buscar nome..." oninput="renderCurrentTab()">
+        <div style="height:8px"></div>
+        <div class="muted">Use a busca para encontrar itens rapidamente.</div>
+      </div>
+    </div>
+
+</section>
+
+<section id="pedidos" class="container screen" style="display:none">
+  <h2>Pedidos de Agendamento</h2>
+  <div style="margin-bottom:12px;display:flex;gap:8px;align-items:center">
+    <div class="muted" style="margin-left:auto">Total: <span id="totalPedidos">0</span></div>
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Data</th>
+        <th>Hora</th>
+        <th>Laboratório</th>
+        <th>Status</th>
+        <th>Professor</th>
+        <th>Turma</th>
+        <th>Materiais</th>
+      </tr>
+    </thead>
+    <tbody id="meusAgsPedidos"></tbody>
+  </table>
+</section>
+
+
+
+<section id="historico" class="container" style="display:none">
+  <h2>Reportar Problemas</h2>
+
+  <div class="flex" style="gap:18px">
+    <div class="col">
+      <div class="sidebar-card">
+        <h4>Problemas Reportados</h4>
+
+       
+        <div class="tabs" id="problemaTabs" style="margin-top:8px;margin-bottom:10px">
+          <div class="tab active" data-subtab="pendentes" onclick="switchProblemaTab('pendentes')">
+            Pendentes (<span id="countPendentes">0</span>)
+          </div>
+          <div class="tab" data-subtab="resolvidos" onclick="switchProblemaTab('resolvidos')">
+            Resolvidos (<span id="countResolvidos">0</span>)
+          </div>
+        </div>
+
+        <div id="problemaConteudo"></div>
+      </div>
+    </div>
+
+    <div class="col-3">
+      <div class="sidebar-card">
+        <h4>Reportar Problema</h4>
+        <label>Descrição do problema</label>
+        <textarea id="descricaoProblema" placeholder="Descreva o problema..."></textarea>
+        <div style="margin-top:10px;display:flex;gap:8px;justify-content:flex-end">
+          <button class="btn btn-ghost" onclick="document.getElementById('descricaoProblema').value=''">Limpar</button>
+          <button class="btn btn-primary" onclick="reportarProblema()">Enviar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+
+<section id="perfil" class="screen container" style="display:none; text-align:center;">
+
+  <h2 style="margin-bottom:25px;">Meu Perfil</h2>
+
+
+  <div style="
+      width: 160px;
+      height: 160px;
+      margin: 0 auto 20px;
+      border-radius: 50%;
+      overflow: hidden;
+      border: 4px solid #b20000;">
+    <img id="perfilFotoTec"
+         src="https://via.placeholder.com/160"
+         style="width:100%;height:100%;object-fit:cover;">
+  </div>
+
+  <p style="font-size:18px;margin:8px 0;">
+    <strong>Nome:</strong>
+    <span id="perfilNomeTec">Carregando...</span>
+  </p>
+
+  <p style="font-size:16px;margin:8px 0;">
+    <strong>Email:</strong>
+    <span id="perfilEmailTec">Carregando...</span>
+  </p>
+
+  <button onclick="abrirModalPerfilTec()"
+          style="
+            margin-top:18px;
+            padding:10px 22px;
+            border-radius:8px;
+            border:none;
+            background:#b20000;
+            color:#fff;
+            font-size:15px;
+            cursor:pointer;">
+    Editar Perfil
+  </button>
+</section>
+
+
+<div id="modalPerfilTec" class="modal-backdrop" style="display:none;">
+  <div class="modal">
+
+    <h3>Editar Perfil</h3>
+
+    <label>Nome:</label>
+    <input type="text" id="editPerfilNomeTec">
+
+    <label>Email:</label>
+    <input type="email" id="editPerfilEmailTec">
+
+    <label>Trocar foto:</label>
+    <input type="file" id="editPerfilFotoTec" accept="image/*">
+
+    <div style="margin-top:15px;text-align:right;">
+      <button onclick="salvarPerfilEditadoTec()" class="btn btn-primary">Salvar</button>
+      <button onclick="fecharModalPerfilTec()" class="btn btn-ghost">Cancelar</button>
+    </div>
+
+  </div>
+</div>
+
+
+</main>
+
+
+<div id="materialModalBackdrop" class="modal-backdrop" onclick="closeMaterialModal(event)">
+  <div class="modal" onclick="event.stopPropagation()">
+    <h3 id="materialModalTitle">Editar Material</h3>
+    <label>Nome</label>
+    <input id="modalNome" type="text" disabled>
+    <label>Quantidade</label>
+    <input id="modalQtd" type="text">
+    <label>Unidade</label>
+    <input id="modalUn" type="text">
+    <label>Tipo</label>
+    <input id="modalTipo" type="text" disabled>
+    <div class="footer">
+      <button class="btn btn-ghost" onclick="closeMaterialModal()">Cancelar</button>
+      <button class="btn btn-primary" onclick="salvarMaterial()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<div id="usoModalBackdrop" class="modal-backdrop" onclick="closeUsoModal(event)">
+  <div class="modal" onclick="event.stopPropagation()">
+    <h3 id="usoModalTitle">Mover Material</h3>
+    <p id="usoModalSub" style="font-size:14px;color:#555;margin-bottom:10px"></p>
+    <label>Quantidade</label>
+    <input id="usoQtd" type="text" min="0" step="any" placeholder="Digite a quantidade">
+    <div class="footer">
+      <button class="btn btn-ghost" onclick="closeUsoModal()">Cancelar</button>
+      <button class="btn btn-primary" onclick="confirmarUso()">Confirmar</button>
+    </div>
+  </div>
+</div>
+
+
+<div id="modalVerResolucaoTech" class="modal-backdrop">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-content">
+      <h3>Mensagem do Administrador</h3>
+      <p class="small-muted" id="verResolucaoTechContext">—</p>
+      <div style="margin-top:8px">
+        <label>Mensagem</label>
+        <textarea id="verResolucaoTechTexto" class="textarea-read" readonly></textarea>
+      </div>
+      <div style="display:flex;justify-content:flex-end;margin-top:12px">
+        <button class="btn btn-primary" onclick="closeModalVerResolucaoTech()">Fechar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  
+
+const KEY_ADMIN = 'materiais';
+const KEY_TECNICO = 'estoqueTecnico';
+const KEY_USO = 'materiaisUso';
+const KEY_PROBLEMAS = 'problemas';
+const KEY_HISTORICO = 'historico';
+const KEY_MENSAGENS_ADMIN = 'mensagensAdmin'; 
+
+
+let estoque = [];
+let uso = [];
+let problemas = [];
+let historico = [];
+
+
+function carregarTudo() {
+  estoque = JSON.parse(localStorage.getItem(KEY_TECNICO) || '[]');
+  uso = JSON.parse(localStorage.getItem(KEY_USO) || '[]');
+  problemas = JSON.parse(localStorage.getItem(KEY_PROBLEMAS) || '[]');
+  historico = JSON.parse(localStorage.getItem(KEY_HISTORICO) || '[]');
+  renderCurrentTab();
+  renderHistorico();
+  renderProblemas();
+}
+
+
+function salvarEstoque(){ localStorage.setItem(KEY_TECNICO, JSON.stringify(estoque)); }
+function salvarUso(){ localStorage.setItem(KEY_USO, JSON.stringify(uso)); }
+function salvarProblemas(){ localStorage.setItem(KEY_PROBLEMAS, JSON.stringify(problemas)); }
+function salvarHistorico(){ localStorage.setItem(KEY_HISTORICO, JSON.stringify(historico)); }
+
+
+function salvarMensagemAdmin(problemaId, mensagem) {
+  try {
+    const mensagensRaw = localStorage.getItem(KEY_MENSAGENS_ADMIN) || '{}';
+    const mensagens = JSON.parse(mensagensRaw);
+    mensagens[problemaId] = mensagem;
+    localStorage.setItem(KEY_MENSAGENS_ADMIN, JSON.stringify(mensagens));
+  } catch(e) {
+    console.error('Erro ao salvar mensagem admin:', e);
+  }
+}
+
+function recuperarMensagemAdmin(problemaId) {
+  try {
+    const mensagensRaw = localStorage.getItem(KEY_MENSAGENS_ADMIN) || '{}';
+    const mensagens = JSON.parse(mensagensRaw);
+    return mensagens[problemaId] || null;
+  } catch(e) {
+    console.error('Erro ao recuperar mensagem admin:', e);
+    return null;
+  }
+}
+
+
+
+function atualizarAdmin(nome, delta) {
+  try {
+    const adminRaw = localStorage.getItem(KEY_ADMIN);
+    if (!adminRaw) return;
+    const admin = JSON.parse(adminRaw);
+    const item = admin.find(x => x.nome === nome);
+    if (!item) return;
+    const nova = (parseFloat(item.quantidade || 0) + delta);
+    item.quantidade = (nova < 0 ? 0 : nova).toString();
+    localStorage.setItem(KEY_ADMIN, JSON.stringify(admin));
+  } catch(e){ console.error('err admin update', e); }
+}
+
+
+function switchTab(tab) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
+  document.getElementById('current-view-label').textContent = tab === 'uso' ? 'Em uso' : 'Estoque';
+  renderMateriais(tab === 'uso');
+}
+
+function renderCurrentTab(){
+  const abaAtiva = document.querySelector('.tab.active')?.dataset.tab || 'estoque';
+  if(abaAtiva === 'uso') renderMateriais(true); else renderMateriais(false);
+}
+
+function renderMateriais(usoView = false){
+  const container = document.getElementById('tab-conteudo');
+  container.innerHTML = '';
+  const search = (document.getElementById('search')?.value || '').toLowerCase();
+  const lista = (usoView ? uso : estoque).filter(m => !search || m.nome.toLowerCase().includes(search));
+  if(lista.length === 0){
+    container.innerHTML = `<div class="muted" style="text-align:center;margin-top:10px">Nenhum material encontrado.</div>`;
+    atualizarContadores();
+    return;
+  }
+  const grupos = {};
+  lista.forEach(m => {
+    const tipo = m.tipo || 'Outros';
+    if(!grupos[tipo]) grupos[tipo] = [];
+    grupos[tipo].push(m);
+  });
+  Object.keys(grupos).forEach(tipo => {
+    const grupoDiv = document.createElement('div');
+    grupoDiv.innerHTML = `<div class="category-header">${tipo}</div>`;
+    const table = document.createElement('table');
+    table.innerHTML = `<thead><tr><th>Nome</th><th>Quantidade</th><th>Unidade</th><th>Ações</th></tr></thead>`;
+    const tb = document.createElement('tbody');
+    grupos[tipo].forEach((m) => {
+      const index = (usoView ? uso.indexOf(m) : estoque.indexOf(m));
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${m.nome}</td>
+        <td>${m.quantidade}</td>
+        <td>${m.unidade}</td>
+        
+          <td><button class="btn btn-sm btn-ghost" onclick="abrirEditar('${m._id}')">✏️</button></td>
+
+          
+        </td>`;
+      tb.appendChild(tr);
+    });
+    table.appendChild(tb);
+    grupoDiv.appendChild(table);
+    container.appendChild(grupoDiv);
+  });
+  atualizarContadores();
+}
+
+
+function atualizarContadores(){
+  document.getElementById('totalEstoque').textContent = `Estoque: ${estoque.length}`;
+  document.getElementById('totalUso').textContent = `Em Uso: ${uso.length}`;
+}
+
+
+let editIndex = null;
+function abrirEditar(id) {
+  const m = estoque.find(mat => mat._id === id);
+
+  if (!m) {
+    alert('Material não encontrado.');
+    return;
+  }
+
+  editIndex = estoque.indexOf(m); 
+
+  
+  document.getElementById('modalNome').value = m.nome || '';
+  document.getElementById('modalQtd').value = m.quantidade || '';
+  document.getElementById('modalUn').value = m.unidade || '';
+  document.getElementById('modalTipo').value = m.tipo || '';
+
+  document.getElementById('materialModalBackdrop').style.display = 'flex';
+}
+
+
+
+function closeMaterialModal() {
+  document.getElementById('materialModalBackdrop').style.display = 'none';
+  editIndex = null;
+}
+
+async function salvarMaterial() {
+  const m = estoque[editIndex];
+  const novaQtd = document.getElementById('modalQtd').value;
+  const novaUn = document.getElementById('modalUn').value;
+  const novoTipo = document.getElementById('modalTipo').value;
+
+  try {
+    const res = await fetch(`http://localhost:3000/materiais/${m._id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        nome: m.nome,
+        quantidade: novaQtd,
+        unidade: novaUn,
+        tipo: novoTipo
+      })
+    });
+
+    if (!res.ok) throw new Error('Falha ao atualizar material.');
+    alert('✅ Material atualizado com sucesso!');
+
+   
+    m.quantidade = novaQtd;
+    m.unidade = novaUn;
+    m.tipo = novoTipo;
+    renderCurrentTab();
+    closeMaterialModal();
+  } catch (err) {
+    console.error('Erro ao salvar no MongoDB:', err);
+    alert('❌ Erro ao salvar no servidor.');
+  }
+}
+
+
+function registrarHistorico(acao, nome, quantidade){
+  historico = historico || [];
+  historico.push({ data: new Date().toLocaleString('pt-BR'), acao, nome, quantidade });
+  salvarHistorico();
+  renderHistorico();
+}
+function renderHistorico(){
+  const tbody = document.querySelector('#tabelaHistorico tbody');
+  if(!tbody) return; 
+  tbody.innerHTML = '';
+  if(!historico || historico.length === 0){
+    tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;color:#777">Nenhuma movimentação registrada.</td></tr>`;
+    return;
+  }
+  historico.slice().reverse().forEach(h => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${h.data}</td><td>${h.nome}</td><td>${h.acao}</td><td>${h.quantidade}</td>`;
+    tbody.appendChild(tr);
+  });
+}
+
+
+
+function reportarProblema(){
+  const desc = (document.getElementById('descricaoProblema').value || '').trim();
+  if(!desc) return alert('Descreva o problema antes de enviar.');
+  const tecnico = (document.getElementById('tecnicoNome').value || 'Técnico não informado').trim();
+ 
+  const id = Date.now().toString() + '-' + Math.floor(Math.random()*1000);
+  const novo = { id: id, descricao: desc, status: 'Pendente', tecnico, data: new Date().toLocaleString('pt-BR') };
+  problemas.unshift(novo);
+  salvarProblemas();
+  document.getElementById('descricaoProblema').value = '';
+  renderProblemas();
+  alert('Problema reportado com sucesso!');
+}
+
+
+let problemaTabAtual = 'pendentes';
+
+function switchProblemaTab(tab) {
+  problemaTabAtual = tab;
+  document.querySelectorAll('#problemaTabs .tab').forEach(t => 
+    t.classList.toggle('active', t.dataset.subtab === tab)
+  );
+  renderProblemas();
+}
+
+function renderProblemas() {
+  const conteudo = document.getElementById('problemaConteudo');
+  if (!conteudo) return;
+  conteudo.innerHTML = '';
+
+  const pendentes = problemas.filter(p => p.status === 'Pendente');
+  const resolvidos = problemas.filter(p => p.status === 'Resolvido');
+
+  document.getElementById('countPendentes').textContent = pendentes.length;
+  document.getElementById('countResolvidos').textContent = resolvidos.length;
+
+  const lista = problemaTabAtual === 'pendentes' ? pendentes : resolvidos;
+  if (lista.length === 0) {
+    conteudo.innerHTML = `<div class="muted" style="text-align:center;margin-top:10px">Nenhum problema ${problemaTabAtual === 'pendentes' ? 'pendente' : 'resolvido'}.</div>`;
+    return;
+  }
+
+  const table = document.createElement('table');
+  table.innerHTML = `<thead><tr><th>Descrição</th><th>Status</th><th>Técnico</th><th>Ações</th></tr></thead>`;
+  const tbody = document.createElement('tbody');
+
+  lista.forEach((p) => {
+    const tr = document.createElement('tr');
+    const statusClass = p.status === 'Pendente' ? 'status-pendente' : 'status-resolvido';
+    const idSafe = p._id || p.id; 
+
+
+    if (p.status !== 'Resolvido') {
+     
+      tr.innerHTML = `
+        <td style="max-width:440px">${p.descricao}</td>
+        <td style="width:140px"><span class="status-badge ${statusClass}">${p.status}</span></td>
+        <td style="width:180px">${p.tecnico || '-'}</td>
+        
+        <td style="width:160px">
+          <span class="muted">Aguardando resolução</span>
+        </td>`;
+    } else {
+    
+      const verBtn = `<button class="btn btn-ghost btn-sm" onclick="verResolucao('${idSafe}')">💬</button>`;
+      tr.innerHTML = `
+        <td style="max-width:440px">${p.descricao}</td>
+        <td style="width:140px"><span class="status-badge ${statusClass}">${p.status}</span></td>
+        <td style="width:180px">${p.tecnico || '-'}</td>
+        
+        <td style="width:160px">
+          ${verBtn}
+        </td>`;
+    }
+
+    tbody.appendChild(tr);
+  });
+
+  table.appendChild(tbody);
+  conteudo.appendChild(table);
+}
+
+
+async function verResolucao(problemaId) {
+  try {
+   
+    const problema = problemas.find(p => p._id === problemaId || p.id === problemaId);
+    const id = problema && problema._id ? problema._id : problemaId;
+
+    console.log("🔍 Buscando resolução do problema:", id);
+
+    const res = await fetch(`http://localhost:3000/problemas/${id}`);
+    if (!res.ok) {
+      console.error("Erro HTTP:", res.status);
+      throw new Error(`HTTP ${res.status}`);
+    }
+
+    const p = await res.json();
+
+    const texto = (p.resolucao && p.resolucao.trim() !== "")
+      ? p.resolucao
+      : "Nenhuma mensagem do administrador.";
+
+    document.getElementById("verResolucaoTechContext").textContent =
+      `Relato: ${p.descricao || '(sem descrição)'} — Técnico: ${p.tecnico || '-'}`;
+    document.getElementById("verResolucaoTechTexto").value = texto;
+
+    document.getElementById("modalVerResolucaoTech").style.display = "flex";
+  } catch (err) {
+    console.error("❌ Erro ao buscar resolução:", err);
+
+    let mensagem = "Erro ao buscar a mensagem do servidor.";
+    if (String(err).includes("404")) mensagem = "Problema não encontrado no servidor.";
+    if (String(err).includes("Failed to fetch")) mensagem = "Servidor offline ou rota /problemas/:id inacessível.";
+
+    document.getElementById("verResolucaoTechContext").textContent = "Erro:";
+    document.getElementById("verResolucaoTechTexto").value = mensagem;
+    document.getElementById("modalVerResolucaoTech").style.display = "flex";
+  }
+}
+
+
+function closeModalVerResolucaoTech() {
+  const modal = document.getElementById('modalVerResolucaoTech');
+  if (modal) {
+    modal.style.display = 'none';
+  }
+  const textarea = document.getElementById('verResolucaoTechTexto');
+  if (textarea) textarea.value = '';
+}
+
+
+document.querySelectorAll('.faixa-vinho nav a').forEach(link => {
+  link.addEventListener('click', e => {
+    e.preventDefault();
+    const target = link.dataset.screen;
+
+   
+    document.querySelectorAll('main section').forEach(sec => sec.style.display = 'none');
+    const ativa = document.getElementById(target);
+    if (ativa) ativa.style.display = 'block';
+
+   
+    document.querySelectorAll('.faixa-vinho nav a').forEach(a => a.classList.remove('active'));
+    link.classList.add('active');
+
+
+    if(target === 'historico'){ 
+      renderHistorico(); 
+      renderProblemas(); 
+    }
+
+  
+    if(target === 'materiais'){ 
+      renderCurrentTab(); 
+    }
+
+    
+    if (target === 'perfil') {
+      
+  carregarPerfilTec()
+
+
+    }
+  });
+});
+
+
+carregarTudo();
+
+
+document.querySelectorAll('.modal-backdrop').forEach(back => {
+  back.addEventListener('click', (ev) => {
+    if (ev.target === back) {
+      back.style.display = 'none';
+    }
+  });
+});
+
+function mostrarPedidosBrutos() {
+ 
+  const agendamentos = JSON.parse(localStorage.getItem('agendamentos') || '{}');
+
+  const pedidosDiv = document.getElementById('pedidos');
+  pedidosDiv.innerHTML = '';
+
+  for (const lab in agendamentos) {
+    const lista = agendamentos[lab];
+    for (const key in lista) {
+      const ag = lista[key];
+      const p = document.createElement('p');
+     
+      p.textContent = `${lab} → ${key}: ${JSON.stringify(ag)}`;
+      pedidosDiv.appendChild(p);
+    }
+  }
+}
+
+
+mostrarPedidosBrutos();
+
+
+
+
+
+function confirmarSeparacao(index) {
+  const agendamentos = JSON.parse(localStorage.getItem('agendamentos') || '[]');
+  if (!agendamentos[index]) return;
+
+  agendamentos[index].status = 'Separado';
+  localStorage.setItem('agendamentos', JSON.stringify(agendamentos));
+
+  alert('Separação confirmada!');
+  renderPedidos();
+}
+
+
+window.addEventListener('storage', (e) => {
+  if (e.key === 'agendamentos') {
+    renderPedidos();
+  }
+});
+
+
+document.addEventListener('DOMContentLoaded', renderPedidos);
+document.querySelector('[data-screen="pedidos"]').addEventListener('click', renderPedidos);
+
+
+
+function getAgendamentosRaw() {
+  try {
+    const raw = localStorage.getItem('agendamentos');
+    console.log('[PEDIDOS] raw agendamentos do storage:', raw);
+    if (!raw) return null;
+    return JSON.parse(raw);
+  } catch (err) {
+    console.error('[PEDIDOS] erro ao parsear agendamentos:', err);
+    return null;
+  }
+}
+
+
+function normalizeAgendamentos(raw) {
+  if (!raw) return [];
+ 
+  if (Array.isArray(raw)) {
+    return raw.map(a => ({ 
+      professor: a.professor || a.nome || a.prof || '—',
+      turma: a.turma || a.class || '—',
+      data: a.data || a.date || '—',
+      horario: a.horario || a.hora || a.time || '—',
+      laboratorio: a.laboratorio || a.lab || a.local || '—',
+      materiais: Array.isArray(a.materiais) ? a.materiais.map(m => (typeof m === 'string' ? m : (m.nome || m.item || JSON.stringify(m)))).join(', ') : (a.materiais || '—'),
+      status: a.status || 'Pendente',
+      raw: a
+    }));
+  }
+
+
+  if (typeof raw === 'object') {
+    
+    const values = Object.values(raw);
+    const looksLikeMap = values.length > 0 && values.every(v => v && (v.professor || v.data || v.horario || v.nome));
+    if (looksLikeMap) {
+      return values.map(a => ({
+        professor: a.professor || a.nome || '—',
+        turma: a.turma || '—',
+        data: a.data || '—',
+        horario: a.horario || a.hora || '—',
+        laboratorio: a.laboratorio || a.lab || '—',
+        materiais: Array.isArray(a.materiais) ? a.materiais.map(m => (typeof m === 'string' ? m : (m.nome || JSON.stringify(m)))).join(', ') : (a.materiais || '—'),
+        status: a.status || 'Pendente',
+        raw: a
+      }));
+    }
+
+   
+    const normalized = [];
+    Object.keys(raw).forEach(lab => {
+      const dias = raw[lab] || {};
+      Object.keys(dias).forEach(data => {
+        const horarios = dias[data] || {};
+        Object.keys(horarios).forEach(horario => {
+          const ag = horarios[horario];
+          
+          if (!ag) return;
+          normalized.push({
+            professor: ag.professor || ag.nome || '—',
+            turma: ag.turma || '—',
+            data: data,
+            horario: horario,
+            laboratorio: lab,
+            materiais: Array.isArray(ag.materiais) ? ag.materiais.map(m => (typeof m === 'string' ? m : (m.nome || JSON.stringify(m)))).join(', ') : (ag.materiais || '—'),
+            status: ag.status || 'Pendente',
+            raw: ag
+          });
+        });
+      });
+    });
+    return normalized;
+  }
+
+ 
+  return [];
+}
+
+function renderPedidos() {
+  const tbody = document.getElementById('meusAgsPedidos');
+  if (!tbody) return;
+
+  const raw = getAgendamentosRaw();
+  const agendamentos = normalizeAgendamentos(raw);
+
+  tbody.innerHTML = ''; 
+  let total = 0;
+
+  agendamentos.forEach(ag => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${ag.data}</td>
+      <td>${ag.horario}</td>
+      <td>${ag.laboratorio}</td>
+      <td>${ag.status}</td>
+    `;
+    tbody.appendChild(tr);
+    total++;
+  });
+
+  
+  const totalElem = document.getElementById('totalPedidos');
+  if (totalElem) totalElem.textContent = total;
+}
+
+
+document.addEventListener('DOMContentLoaded', renderPedidos);
+document.querySelector('[data-screen="pedidos"]').addEventListener('click', renderPedidos);
+
+
+function confirmarSeparacaoNormalizada(normalIndex, normalizedList) {
+  const raw = getAgendamentosRaw();
+  const item = normalizedList[normalIndex];
+  if (!item) { alert('Item não encontrado.'); return; }
+
+  
+  item.status = 'Separado';
+  renderPedidos();
+
+  
+  try {
+    if (Array.isArray(raw)) {
+      
+      const matchIndex = raw.findIndex(r => (r.professor === item.raw.professor || r.professor === item.professor) && (r.data === item.data || r.date === item.data) && (r.horario === item.horario || r.time === item.horario));
+      if (matchIndex >= 0) {
+        raw[matchIndex].status = 'Separado';
+        localStorage.setItem('agendamentos', JSON.stringify(raw));
+        alert('Separação confirmada (array).');
+        return;
+      }
+    } else if (typeof raw === 'object') {
+      
+      const keys = Object.keys(raw);
+      for (const k of keys) {
+        const v = raw[k];
+        if (!v) continue;
+        
+        const maybeLab = Object.keys(raw).every(k2 => {
+          const val = raw[k2];
+          return val && typeof val === 'object' && Object.keys(val).length > 0 && Object.keys(val).every(d => typeof val[d] === 'object');
+        });
+        if (maybeLab) {
+          
+          let atualizado = false;
+          Object.keys(raw).forEach(lab => {
+            const dias = raw[lab] || {};
+            Object.keys(dias).forEach(data => {
+              const horarios = dias[data] || {};
+              Object.keys(horarios).forEach(horario => {
+                const ag = horarios[horario];
+                if (!ag) return;
+                const match = ( (ag.professor === item.professor || ag.nome === item.professor) && (data === item.data) && (horario === item.horario) );
+                if (match) {
+                  horarios[horario].status = 'Separado';
+                  atualizado = true;
+                }
+              });
+            });
+          });
+          if (atualizado) {
+            localStorage.setItem('agendamentos', JSON.stringify(raw));
+            alert('Separação confirmada (estrutura por laboratório).');
+            return;
+          }
+        } else {
+          
+          const vKeys = Object.keys(v || {});
+          const looksLikeAg = v && (v.professor || v.data || v.horario);
+          if (looksLikeAg) {
+            
+            for (const id of Object.keys(raw)) {
+              const candidate = raw[id];
+              if (!candidate) continue;
+              const match =
+                (candidate.professor === item.professor || candidate.nome === item.professor)
+                && (candidate.data === item.data || candidate.date === item.data)
+                && (candidate.horario === item.horario || candidate.time === item.horario);
+              if (match) {
+                raw[id].status = 'Separado';
+                localStorage.setItem('agendamentos', JSON.stringify(raw));
+                alert('Separação confirmada (mapa id->agendamento).');
+                return;
+              }
+            }
+          }
+        }
+      }
+    }
+  } catch (err) {
+    console.error('[PEDIDOS] erro ao tentar persistir separação:', err);
+  }
+
+ 
+  alert('Separação atualizada na interface, mas não foi possível salvar automaticamente no localStorage (formato não reconhecido).');
+ 
+}
+
+
+window.addEventListener('storage', (e) => {
+  if (e.key === 'agendamentos') {
+    console.log('[PEDIDOS] evento storage detectado para agendamentos');
+    renderPedidos();
+  }
+});
+
+document.querySelectorAll('.faixa-vinho nav a[data-screen="pedidos"]').forEach(link => {
+ 
+  link.addEventListener('click', (ev) => {
+    ev.preventDefault();
+    document.querySelectorAll('main section').forEach(sec => sec.style.display = 'none');
+    document.getElementById('pedidos').style.display = 'block';
+    document.querySelectorAll('.faixa-vinho nav a').forEach(a => a.classList.remove('active'));
+    link.classList.add('active');
+    renderPedidos();
+  });
+});
+
+
+document.addEventListener('DOMContentLoaded', () => {
+
+  setTimeout(renderPedidos, 60);
+});
+
+async function mostrarPedidosTabela() {
+  const pedidosDiv = document.getElementById("pedidos");
+  pedidosDiv.innerHTML = "Carregando pedidos...";
+
+  try {
+  
+    const res = await fetch("http://localhost:3000/agendamentos");
+    const agendamentosDB = await res.json();
+
+    pedidosDiv.innerHTML = "";
+
+    let card = document.createElement("div");
+    card.style.cssText =
+      "background:#fff;border-radius:15px;padding:25px;margin:25px auto;width:90%;max-width:1000px;overflow-x:auto;";
+
+    let tabela = document.createElement("table");
+    tabela.style.cssText =
+      "width:100%;border-collapse:collapse;font-family:Arial,sans-serif;font-size:16px;";
+
+    let cabecalho = document.createElement("tr");
+    ["Data", "Horário", "Laboratório", "Status", "Ações"].forEach((txt) => {
+      const th = document.createElement("th");
+      th.textContent = txt;
+      th.style = "padding:12px;text-align:left;font-weight:bold;color:#333;";
+      cabecalho.appendChild(th);
+    });
+    tabela.appendChild(cabecalho);
+
+    
+    let modal = document.getElementById("modalVerKit");
+    if (!modal) criarModalTec();
+
+    for (const ag of agendamentosDB) {
+      const tr = document.createElement("tr");
+      tr.style.borderBottom = "1px solid #f2f2f2";
+
+      const tdData = document.createElement("td");
+      tdData.style.padding = "10px";
+      const [y, m, d] = ag.data.split("-");
+      tdData.textContent = `${d}/${m}/${y}`;
+      tr.appendChild(tdData);
+
+      const tdHora = document.createElement("td");
+      tdHora.textContent = ag.hora;
+      tdHora.style.padding = "10px";
+      tr.appendChild(tdHora);
+
+      const tdLab = document.createElement("td");
+      tdLab.textContent = ag.laboratorio;
+      tdLab.style.padding = "10px";
+      tr.appendChild(tdLab);
+
+      const tdStatus = document.createElement("td");
+      const badge = document.createElement("span");
+      badge.textContent = ag.status;
+      badge.style.cssText = `
+        display:inline-block;padding:4px 10px;border-radius:6px;font-weight:600;
+        background:${ag.status === "Separado" ? "rgba(46,204,113,0.15)" : "rgba(231,76,60,0.15)"};
+        color:${ag.status === "Separado" ? "#27ae60" : "#c0392b"};
+        font-size:12px;min-width:85px;text-align:center;
+      `;
+      tdStatus.appendChild(badge);
+      tdStatus.style.padding = "10px";
+      tr.appendChild(tdStatus);
+
+      const tdAcoes = document.createElement("td");
+      tdAcoes.style = "padding:10px;display:flex;gap:10px;align-items:center;";
+
+    
+      const btnSeparar = document.createElement("button");
+      btnSeparar.textContent = "Separar";
+      btnSeparar.style.cssText = `
+        background:#b20000;color:#fff;border:none;border-radius:6px;
+        padding:5px 12px;font-size:14px;cursor:pointer;
+      `;
+
+      btnSeparar.onclick = async () => {
+        try {
+         
+          document.getElementById("kitConteudo").innerHTML = "Seoparado";
+          document.getElementById("kitTitulo").textContent = "Separado";
+          document.getElementById("kitTotal").textContent = "";
+          document.getElementById("modalVerKit").style.display = "flex";
+
+          
+          const agReal = await (await fetch(`http://localhost:3000/agendamentos/${ag._id}`)).json();
+
+          let html = `
+            <div><strong>Data:</strong> ${agReal.data}</div>
+            <div><strong>Hora:</strong> ${agReal.hora}</div>
+            <div><strong>Laboratório:</strong> ${agReal.laboratorio}</div>
+            <div><strong>Professor:</strong> ${agReal.professor}</div>
+          `;
+
+     
+          if (agReal.materiais?.length) {
+            html += `<div style="margin-top:10px;"><strong>Materiais adicionais:</strong><ul>`;
+            agReal.materiais.forEach(m => html += `<li>${m}</li>`);
+            html += `</ul></div>`;
+          }
+
+        
+          let total = 0;
+          if (agReal.kitId) {
+            const kit = await (await fetch(`http://localhost:3000/kits/kit/${agReal.kitId}`)).json();
+
+            let list = "";
+            kit.items.forEach(it => {
+              const nome = it.name;
+              const qtd = it.qtySelected;
+              const unit = it.unit || "";
+              total += qtd;
+
+              list += `
+                <div style="display:flex;justify-content:space-between;padding:8px;margin-top:5px;background:#fff;border-radius:8px;">
+                  <div><strong>${nome}</strong><br><small>${unit}</small></div>
+                  <div style="font-weight:700">${qtd} ${unit}</div>
+                </div>`;
+            });
+
+            html += `
+              <div style="margin-top:15px">
+                <strong>Kit:</strong> ${kit.nome}
+                <div style="margin-top:5px">${list}</div>
+              </div>
+            `;
+
+            document.getElementById("kitTitulo").textContent = `Kit — ${kit.nome}`;
+            document.getElementById("kitTotal").textContent = `Total aproximado: ${total}`;
+          }
+
+          document.getElementById("kitConteudo").innerHTML = html;
+
+        
+          document.getElementById("confirmarSeparacao").onclick = async () => {
+            await fetch(`http://localhost:3000/agendamentos/${ag._id}`, {
+              method: "PUT",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ status: "Separado" })
+            });
+
+            badge.textContent = "Separado";
+            badge.style.background = "rgba(46,204,113,0.15)";
+            badge.style.color = "#27ae60";
+
+            alert("✔ Pedido separado");
+            document.getElementById("modalVerKit").style.display = "none";
+
+            mostrarPedidosTabela();
+          };
+
+        } catch (err) {
+          alert("Erro ao abrir pedido.");
+        }
+      };
+
+     
+      tdAcoes.append(btnSeparar);
+      tr.appendChild(tdAcoes);
+
+      tabela.appendChild(tr);
+    }
+
+    card.appendChild(tabela);
+    pedidosDiv.appendChild(card);
+
+  } catch (err) {
+    pedidosDiv.innerHTML = "<p style='color:red;'>Erro ao carregar pedidos.</p>";
+  }
+}
+
+
+function criarModalTec() {
+  const modal = document.createElement("div");
+  modal.id = "modalVerKit";
+  modal.style.cssText = `
+    position:fixed;inset:0;display:none;align-items:center;justify-content:center;
+    background:rgba(0,0,0,0.5);z-index:999;
+  `;
+  modal.innerHTML = `
+    <div style="background:#fff;border-radius:12px;padding:18px;max-width:800px;width:95%;max-height:85vh;overflow:auto;">
+      <div style="display:flex;align-items:center;">
+        <h3 id="kitTitulo" style="margin:0;flex:1"></h3>
+        <button onclick="document.getElementById('modalVerKit').style.display='none'"
+          style="background:none;border:0;font-size:20px;cursor:pointer;">✖</button>
+      </div>
+      <div id="kitConteudo" style="margin-top:10px;"></div>
+      <div id="kitTotal" style="margin-top:10px;font-weight:bold;"></div>
+      <button id="confirmarSeparacao"
+        style="margin-top:15px;background:#b20000;color:#fff;border:none;padding:8px 14px;border-radius:6px;">
+        Confirmar separação
+      </button>
+    </div>`;
+  document.body.appendChild(modal);
+}
+
+
+setInterval(mostrarPedidosTabela, 5000);
+
+
+mostrarPedidosTabela();
+
+
+
+const API_BASE = 'http://localhost:3000';
+
+async function syncFromServer() {
+  try {
+    const [usuariosRes, materiaisRes, problemasRes, agendamentosRes] = await Promise.all([
+      fetch(API_BASE + '/usuarios'),
+      fetch(API_BASE + '/materiais'),
+      fetch(API_BASE + '/problemas'),
+      fetch(API_BASE + '/agendamentos')
+    ]);
+
+    const usuarios = await usuariosRes.json();
+    const materiais = await materiaisRes.json();
+    const problemasServer = await problemasRes.json();
+    const agendamentos = await agendamentosRes.json();
+
+   
+    localStorage.setItem('usuarios', JSON.stringify(usuarios));
+    localStorage.setItem('materiais', JSON.stringify(materiais));
+    localStorage.setItem('problemas', JSON.stringify(problemasServer));
+    localStorage.setItem('agendamentos', JSON.stringify(agendamentos));
+
+    problemas = problemasServer;
+
+    if (typeof renderProblemas === "function") {
+      renderProblemas();
+    }
+
+    if (typeof switchProblemaTab === "function") {
+      switchProblemaTab("pendentes");
+    }
+
+    if (typeof renderUsuarios === "function") renderUsuarios(usuarios);
+    if (typeof renderMateriais === "function") renderMateriais();
+    if (typeof renderCurrentTab === "function") renderCurrentTab();
+
+    if (typeof gerarCalendario === 'function') {
+      gerarCalendario(
+        window.mesAtual || new Date().getMonth(),
+        window.anoAtual || new Date().getFullYear()
+      );
+    }
+
+    console.log("✅ Técnico sincronizado com Mongo");
+  } catch (e) {
+    console.error("❌ Falha ao sincronizar:", e);
+  }
+}
+
+
+
+async function fazerLogin() {
+  try {
+    const tipo = (document.getElementById('tipo')?document.getElementById('tipo').value: null) || (document.querySelector('#tipo')?document.querySelector('#tipo').value: null);
+    const login = (document.getElementById('login')?document.getElementById('login').value.trim(): (document.getElementById('perfilEmail')?document.getElementById('perfilEmail').value.trim():''));
+    const senha = (document.getElementById('senha')?document.getElementById('senha').value.trim():'');
+    const resultado = document.getElementById('resultado');
+    if(!login || !senha) { if(resultado){ resultado.style.display='block'; resultado.style.color='red'; resultado.textContent='Preencha todos os campos.';} return; }
+    const res = await fetch(API_BASE + '/usuarios');
+    const usuarios = await res.json();
+    const usuario = usuarios.find(u => u.email === login && u.senha === senha && u.funcao === tipo);
+    if(!usuario) {
+      if(resultado){ resultado.style.display='block'; resultado.style.color='red'; resultado.textContent='Usuário não cadastrado ou dados incorretos.'; }
+      return;
+    }
+    sessionStorage.setItem('currentUser', JSON.stringify(usuario));
+    if(resultado){ resultado.style.display='block'; resultado.style.color='green'; resultado.textContent=`Login bem-sucedido como ${tipo}.`; }
+    
+    setTimeout(()=> {
+      if(tipo === 'Administrador') window.location.href = 'Administrador.html';
+      else if(tipo === 'Professor') window.location.href = 'professor.html';
+      else window.location.href = 'Tecnico.html';
+    }, 600);
+  } catch(e){
+    console.error('fazerLogin error', e);
+  }
+}
+
+
+async function adicionarUsuario() {
+  try {
+    const nome = (document.getElementById('novoNome')?document.getElementById('novoNome').value.trim():'');
+    const email = (document.getElementById('novoEmail')?document.getElementById('novoEmail').value.trim():'');
+    const senha = (document.getElementById('novoSenha')?document.getElementById('novoSenha').value.trim():'');
+    const func = (document.getElementById('novoFunc')?document.getElementById('novoFunc').value:'Professor');
+    const materia = func==='Professor' ? (document.getElementById('novoMateria')?document.getElementById('novoMateria').value.trim():'') : '';
+    if(!nome||!email||!senha) return alert('Preencha todos os campos');
+    await fetch(API_BASE + '/usuarios', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({nome,email,senha,funcao:func,materia}) });
+    await syncFromServer();
+    if(document.getElementById('novoNome')){ document.getElementById('novoNome').value=''; document.getElementById('novoEmail').value=''; document.getElementById('novoSenha').value=''; }
+    alert('Usuário adicionado (servidor).');
+  } catch(e){ console.error('adicionarUsuario', e); alert('Erro ao adicionar usuário'); }
+}
+
+
+async function adicionarMaterial() {
+  try {
+    const nome = (document.getElementById('novoMaterialNome')?document.getElementById('novoMaterialNome').value.trim():'');
+    const qtd = parseFloat((document.getElementById('novoMaterialQtd')?document.getElementById('novoMaterialQtd').value:'0')) || 0;
+    const un = (document.getElementById('novoMaterialUn')?document.getElementById('novoMaterialUn').value.trim():'un');
+    const tipo = (document.getElementById('novoMaterialTipo')?document.getElementById('novoMaterialTipo').value:'Vidraria');
+    if(!nome) return alert('Informe o nome do material');
+    await fetch(API_BASE + '/materiais', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({nome,quantidade:qtd,unidade:un,tipo})});
+    await syncFromServer();
+    if(document.getElementById('novoMaterialNome')){ document.getElementById('novoMaterialNome').value=''; document.getElementById('novoMaterialQtd').value=''; document.getElementById('novoMaterialUn').value=''; }
+    alert('Material adicionado (servidor).');
+  } catch(e){ console.error('adicionarMaterial', e); alert('Erro ao adicionar material'); }
+}
+
+async function reportarProblema() {
+  try {
+    const descricao = (document.getElementById('descricaoProblema')?document.getElementById('descricaoProblema').value.trim():'');
+    const tecnico = (document.getElementById('tecnicoNome')?document.getElementById('tecnicoNome').value.trim(): 'Técnico');
+    if(!descricao) return alert('Descreva o problema');
+    await fetch(API_BASE + '/problemas', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({descricao, tecnico, status:'Pendente'})});
+    await syncFromServer();
+    if(document.getElementById('descricaoProblema')) document.getElementById('descricaoProblema').value='';
+    alert('Problema reportado (servidor).');
+  } catch(e){ console.error('reportarProblema', e); alert('Erro ao reportar problema'); }
+}
+
+
+async function criarAgendamento() {
+  try {
+    
+    const laboratorio = (document.getElementById('labSelect')?document.getElementById('labSelect').value:'Lab. 1');
+    const data = (window.dataSelecionada || document.getElementById('perfilData')?document.getElementById('perfilData').value: (new Date()).toISOString().slice(0,10));
+    const hora = (document.getElementById('agHora')?document.getElementById('agHora').value:'');
+    const professor = (JSON.parse(sessionStorage.getItem('currentUser')||'{}').nome) || (document.getElementById('perfilNome')?document.getElementById('perfilNome').value:'Professor');
+    const materiais = (document.getElementById('materiaisAg')?document.getElementById('materiaisAg').value.split(',').map(s=>s.trim()).filter(s=>s):[]);
+    if(!hora) return alert('Selecione um horário');
+    await fetch(API_BASE + '/agendamentos', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({laboratorio,data,hora,professor,materiais,status:'Pendente'})});
+    await syncFromServer();
+    alert('Agendamento criado (servidor).');
+  } catch(e){ console.error('criarAgendamento', e); alert('Erro ao criar agendamento'); }
+}
+
+
+async function salvarResolucao(problemaId, resolucaoText) {
+  try {
+    const id = problemaId || (document.getElementById('currentProblemaId')?document.getElementById('currentProblemaId').value:null);
+    const text = resolucaoText || document.getElementById('inputResolucao')?document.getElementById('inputResolucao').value:'';
+    if(!id) return alert('Problema não identificado');
+    await fetch(API_BASE + '/problemas/' + id, { method:'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify({resolucao: text, status: 'Resolvido'})});
+    await syncFromServer();
+    alert('Problema marcado como resolvido (servidor).');
+  } catch(e){ console.error('salvarResolucao', e); alert('Erro ao salvar resolução'); }
+}
+
+
+
+const API = 'http://localhost:3000'; 
+
+async function carregarDoMongo() {
+  try {
+    const [materiaisRes, usoRes, problemasRes, agendamentosRes] = await Promise.all([
+      fetch(`${API_BASE}/materiais`),
+      fetch(`${API_BASE}/materiaisUso`), 
+      fetch(`${API_BASE}/problemas`),
+      fetch(`${API_BASE}/agendamentos`)
+    ]);
+
+    const materiais = await materiaisRes.json();
+    const materiaisUso = usoRes.ok ? await usoRes.json() : [];
+    const problemas = await problemasRes.json();
+    const agendamentos = await agendamentosRes.json();
+
+    
+    estoque = materiais;
+    uso = materiaisUso;
+    window.problemas = problemas;
+
+    
+    renderCurrentTab();
+    renderProblemas();
+    renderHistorico();
+
+   
+    localStorage.setItem('estoqueTecnico', JSON.stringify(estoque));
+    localStorage.setItem('materiaisUso', JSON.stringify(uso));
+    localStorage.setItem('problemas', JSON.stringify(problemas));
+    localStorage.setItem('agendamentos', JSON.stringify(agendamentos));
+
+    console.log('✅ Dados carregados do MongoDB com sucesso');
+  } catch (err) {
+    console.error('❌ Erro ao carregar dados do servidor:', err);
+    alert('Não foi possível carregar os dados do servidor.');
+  }
+}
+
+const API_URL = "http://localhost:3000";
+
+let tecnicoLogado = JSON.parse(sessionStorage.getItem("currentUser") || "null");
+
+function normalizarID(func) {
+  if (!func) return func;
+  return func.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+}
+
+
+async function carregarPerfilTec() {
+  try {
+    console.log("Buscando técnico...");
+
+    const user = sessionStorage.getItem("currentUser");
+
+    if (!user) {
+      console.error("❌ Não existe currentUser na sessionStorage");
+      alert("Erro: usuário não encontrado. Faça login novamente.");
+      return;
+    }
+
+    tecnicoLogado = JSON.parse(user);
+
+    console.log("Usuário logado:", tecnicoLogado);
+
+    if (!tecnicoLogado._id) {
+      console.error("❌ Técnico sem _id");
+      return alert("Erro: ID do técnico não encontrado.");
+    }
+
+    const res = await fetch(`http://localhost:3000/usuarios/${tecnicoLogado._id}`);
+
+    if (!res.ok) {
+      throw new Error("Erro ao buscar técnico no MongoDB");
+    }
+
+    const dados = await res.json();
+
+    console.log("Dados do Mongo:", dados);
+
+    document.getElementById("perfilNomeTec").textContent = dados.nome;
+    document.getElementById("perfilEmailTec").textContent = dados.email;
+
+    document.getElementById("perfilFotoTec").src =
+  dados.foto
+  ? `http://localhost:3000${dados.foto}`
+  : "https://via.placeholder.com/160";
+
+
+  } catch (err) {
+    console.error("❌ ERRO FINAL:", err);
+    alert("Erro ao carregar perfil do técnico. Veja o console (F12)");
+  }
+}
+
+
+
+function abrirModalPerfilTec() {
+  if (!tecnicoLogado) return;
+
+  document.getElementById("editPerfilNomeTec").value = tecnicoLogado.nome;
+  document.getElementById("editPerfilEmailTec").value = tecnicoLogado.email;
+
+  document.getElementById("modalPerfilTec").style.display = "flex";
+}
+
+
+function fecharModalPerfilTec() {
+  document.getElementById("modalPerfilTec").style.display = "none";
+}
+
+
+async function salvarPerfilEditadoTec() {
+  try {
+    const nome = document.getElementById("editPerfilNomeTec").value.trim();
+    const email = document.getElementById("editPerfilEmailTec").value.trim();
+    const file = document.getElementById("editPerfilFotoTec").files[0];
+
+    if (!nome || !email) {
+      alert("Preencha nome e email");
+      return;
+    }
+
+    if (!tecnicoLogado || !tecnicoLogado._id) {
+      alert("Usuário não encontrado na sessão");
+      return;
+    }
+
+    
+    const formData = new FormData();
+    formData.append("nome", nome);
+    formData.append("email", email);
+
+    if (file) {
+      formData.append("foto", file); 
+    }
+
+    const res = await fetch(`http://localhost:3000/usuarios/${tecnicoLogado._id}`, {
+      method: "PUT",
+      body: formData
+    });
+
+    if (!res.ok) {
+      const erro = await res.text();
+      throw new Error(erro);
+    }
+
+    const usuarioAtualizado = await res.json();
+
+  
+    tecnicoLogado = usuarioAtualizado;
+    sessionStorage.setItem("currentUser", JSON.stringify(usuarioAtualizado));
+
+    
+    document.getElementById("perfilNomeTec").textContent = usuarioAtualizado.nome;
+    document.getElementById("perfilEmailTec").textContent = usuarioAtualizado.email;
+
+    document.getElementById("perfilFotoTec").src =
+      usuarioAtualizado.foto
+      ? `http://localhost:3000${usuarioAtualizado.foto}`
+      : "https://via.placeholder.com/160";
+
+    fecharModalPerfilTec();
+
+    alert("✅ Perfil atualizado com sucesso!");
+
+  } catch (err) {
+    console.error("Erro ao salvar perfil:", err);
+    alert("❌ ERRO AO SALVAR PERFIL - veja o console (F12)");
+  }
+}
+
+
+document.querySelector('[data-screen="perfil"]').addEventListener("click", carregarPerfilTec);
+
+document.addEventListener("DOMContentLoaded", carregarPerfilTec);
+
+
+window.addEventListener("storage", (event) => {
+  if (event.key === "materiais") {
+
+    
+    if (typeof carregarMateriais === 'function') {
+      carregarMateriais();
+    }
+
+   
+    if (typeof carregarMateriaisKits === 'function') {
+      carregarMateriaisKits();
+    }
+
+    if (typeof carregarTudo === 'function') {
+      carregarTudo();
+    }
+
+  }
+});
+
+document.addEventListener("DOMContentLoaded", () => {
+  console.log("✅ Técnico carregado, puxando dados do MongoDB...");
+  carregarDoMongo();
+});
+
+
+
+document.addEventListener("DOMContentLoaded", () => {
+  
+  ensureCurrentUserFromStorage();
+  carregarPerfil().catch(e => console.warn('carregarPerfil init falhou', e));
+});
+
+
+setInterval(async () => {
+  try {
+    const res = await fetch(window.API_BASE + '/materiais');
+    const dados = await res.json();
+
+    
+    if (JSON.stringify(dados) !== JSON.stringify(materiais)) {
+      materiais = dados;
+      localStorage.setItem("materiais", JSON.stringify(materiais));
+
+      if (typeof carregarTudo === "function") {
+        carregarTudo();
+      }
+
+      if (typeof carregarMateriais === "function") {
+        carregarMateriais();
+      }
+
+      console.log("✅ Técnicos sincronizados com MongoDB");
+    }
+
+  } catch (e) {
+    console.error("Erro ao sincronizar materiais (Técnico):", e);
+  }
+}, 2000);
+
+
+
+window.addEventListener("storage", (event) => {
+  if (event.key === "materiais") {
+
+   
+    if (typeof carregarMateriais === 'function') {
+      carregarMateriais();
+    }
+
+  
+    if (typeof carregarMateriaisKits === 'function') {
+      carregarMateriaisKits();
+    }
+
+   
+    if (typeof carregarTudo === 'function') {
+      carregarTudo();
+    }
+
+  }
+});
+
+
+const canalSync = new BroadcastChannel("sync_materiais_etec");
+
+
+canalSync.onmessage = async (event) => {
+  if (event.data === "materiais_atualizados") {
+    console.log("📡 Recebido: materiais_atualizados");
+
+    if (typeof syncFromServer === "function") {
+      await syncFromServer();
+    }
+
+    if (typeof carregarMateriais === "function") {
+      carregarMateriais();
+    }
+
+    if (typeof carregarTudo === "function") {
+      carregarTudo();
+    }
+
+    if (typeof renderCurrentTab === "function") {
+      renderCurrentTab();
+    }
+  }
+};
+
+function sair() {
+  localStorage.clear(); 
+  window.location.href = "login.html"; 
+}
+
+
+</script>
+
+</body>
+</html>

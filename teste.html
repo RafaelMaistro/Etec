@@ -1,0 +1,2459 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Sistema de Agendamentos - Professor</title>
+  <style>
+    /* ===== Reset / Base ===== */
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:Inter, "Segoe UI", Arial, Helvetica, sans-serif;background:#f6f7f8;color:#111;-webkit-font-smoothing:antialiased}
+    header{position:fixed;top:0;left:0;width:100%;z-index:60}
+    .topo{background:#fff;display:flex;align-items:center;padding:12px 18px;height:68px;border-bottom:1px solid #eee}
+    .logos img{height:46px}
+    .faixa-vinho{background:#b20000;color:#fff;height:56px;display:flex;align-items:center;justify-content:flex-end;padding-right:28px}
+    .faixa-vinho nav ul{display:flex;gap:18px;list-style:none}
+    .faixa-vinho nav a{color:#fff;text-decoration:none;font-weight:600;cursor:pointer;padding:10px;border-radius:8px}
+    .faixa-vinho nav a:hover{background:rgba(255,255,255,0.06)}
+    main{max-width:1180px;margin:140px auto 80px;padding:16px}
+
+    .container{background:#fff;border-radius:10px;padding:18px;box-shadow:0 6px 18px rgba(20,30,50,0.04);margin-bottom:16px}
+    h1,h2{font-weight:700}
+    h2{font-size:20px;margin-bottom:12px}
+    label{display:block;margin:8px 0 6px;font-weight:600}
+
+    /* grid helpers */
+    .grid{display:grid;gap:14px}
+    .cols-2{grid-template-columns:1fr 380px}
+    .cols-3{grid-template-columns:1fr 380px 300px}
+    @media(max-width:980px){ .cols-2,.cols-3{grid-template-columns:1fr} }
+
+    /* calendar */
+    .cal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+    .cal-header button{background:none;border:1px solid #eee;padding:6px 10px;border-radius:8px;cursor:pointer}
+    .calendar{display:grid;grid-template-columns:repeat(7,1fr);gap:8px}
+    .cell{aspect-ratio:1/1;background:#fff;border-radius:10px;display:flex;align-items:flex-start;justify-content:flex-start;padding:8px;border:1px solid #e8e8e8;cursor:pointer;position:relative;overflow:hidden;transition:transform .12s, background .12s}
+    .cell.header{background:#fafafa;font-weight:700;cursor:default;justify-content:center;align-items:center}
+    .day-num{position:absolute;top:8px;left:10px;font-weight:700;z-index:2}
+
+    /* hover blink animation (aplica apenas aos dias normais) */
+    @keyframes blinkRed {
+      0%   { background: #fff; }
+      50%  { background: rgba(178, 0, 0, 0.18); }
+      100% { background: #fff; }
+    }
+    /* aplica hover com animação, mas não quando a célula já está selecionada */
+    .cell:not(.header):not(.dia-selecionado):hover {
+      animation: blinkRed .9s infinite;
+      transform: translateY(-3px);
+      border-color: #b20000;
+    }
+
+    /* Seleção fixa — VERMELHO VINHO institucional */
+    .dia-selecionado {
+      background: #f3a1a1 !important;   /* vinho fixo */
+      color: #fff !important;
+      border: 2px solid #7a0000 !important;
+      transform: translateY(-2px) scale(1.02);
+      box-shadow: 0 8px 22px rgba(178,0,0,0.08);
+      z-index: 3;
+    }
+    .dia-selecionado .day-num { color: #fff !important; z-index:4; font-weight:800; }
+
+    .cell.dia-selecionado:hover { animation: none !important; }
+
+    .dia-agendado { background: #f7caca; border-color:#b20000 }
+
+    /* items / kits builder */
+    .search-box{display:flex;gap:8px;margin-bottom:8px}
+    .search-box input{flex:1;padding:10px;border:1px solid #e3e6ea;border-radius:8px}
+    .items-list{max-height:360px;overflow:auto;padding:8px;border:1px solid #e8e8e8;border-radius:8px;background:#fff}
+    .item-card{display:flex;align-items:center;gap:8px;padding:10px;border-radius:8px;border-bottom:1px solid #f3f3f3}
+    .item-card:last-child{border-bottom:0}
+    .item-info{flex:1}
+    .item-name{font-weight:600}
+    .item-meta{font-size:13px;color:#666;margin-top:4px}
+    .qty-controls{display:flex;gap:6px;align-items:center}
+    .qty-controls input{width:76px;padding:6px;border-radius:6px;border:1px solid #e3e6ea;text-align:center}
+    .btn{padding:8px 10px;border-radius:8px;border:0;cursor:pointer}
+    .btn-primary{background:#b20000;color:#fff}
+    .btn-ghost{background:#f1f4f8;border:1px solid #e6e9ee}
+    .kit-preview{border:1px solid #f2d8c9;background:#fff8f2;padding:10px;border-radius:8px;min-height:80px}
+    .kit-item{display:flex;align-items:center;gap:8px;padding:6px;border-radius:6px;border-bottom:1px solid #f1f1f1}
+    .kit-item:last-child{border-bottom:0}
+    .muted{color:#6b7280;font-size:13px}
+    .action-btn{background:none;border:0;cursor:pointer;padding:6px;border-radius:6px}
+    .action-btn:hover{background:#f3f4f6}
+
+    /* kits list minimal */
+    .kit-row{display:flex;align-items:center;justify-content:space-between;padding:8px;border-bottom:1px solid #f3f3f3}
+    .kit-row:last-child{border-bottom:0}
+    .small-ico{font-size:16px;margin-left:6px}
+
+    /* tables */
+    table{width:100%;border-collapse:collapse}
+    th,td{padding:10px;border-bottom:1px solid #eef2f6;text-align:left}
+    th{background:#fafafa}
+
+    /* modal */
+    .modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,0.45);display:none;align-items:center;justify-content:center;z-index:120;padding:18px}
+    .modal{background:#fff;border-radius:10px;padding:18px;max-width:920px;width:100%;max-height:85vh;overflow:auto;box-shadow:0 10px 40px rgba(0,0,0,0.35)}
+    .modal .modal-header{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+    .modal .close-btn{margin-left:auto;background:none;border:0;font-size:18px;cursor:pointer}
+    .icon-btn{border:0;background:none;cursor:pointer;padding:6px;border-radius:6px}
+    .icon-btn:hover{background:#f3f4f6}
+    .modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+.modal {
+  background: white;
+  padding: 20px;
+  border-radius: 12px;
+  width: 320px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+
+
+.btn-primary {
+  background: #b20000;
+  color: white;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.btn-secondary {
+  background: #555;
+  color: white;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+    @media(max-width:700px){ .modal{max-width:96%} }
+  </style>
+</head>
+<body>
+  <!-- VLibras Plugin -->
+<div vw class="enabled">
+  <div vw-access-button class="active"></div>
+  <div vw-plugin-wrapper>
+    <div class="vw-plugin-top-wrapper"></div>
+  </div>
+</div>
+
+<script src="https://vlibras.gov.br/app/vlibras-plugin.js"></script>
+<script>
+  new window.VLibras.Widget('https://vlibras.gov.br/app');
+</script>
+<!-- Fim do VLibras -->
+
+  <header>
+    <div class="topo">
+      <div class="logos"><img src="Screenshot 2025-10-20 075927.png" alt="Logo"></div>
+      <div style="flex:1">
+      <strong>Sistema de Agendamento - Professor</strong>
+      <div class="muted">ETEC Júlio de Mesquita</div>
+    </div>
+    </div>
+
+    <div class="faixa-vinho">
+      <nav>
+        <ul>
+          <li><a data-screen="agendamento">Agendar Experimento</a></li>
+          <li><a data-screen="kits">Kits</a></li>
+          <li><a data-screen="meusAgendamentos">Meus Agendamentos</a></li>
+          <li><a data-screen="perfil">Perfil</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <!-- AGENDAR -->
+    <section id="agendamento" class="container screen">
+      <h2>Agendamento de Experimento</h2>
+      <div class="grid cols-2">
+        <div>
+          <label>Laboratório</label>
+          <select id="labSelect">
+            <option>Lab. 1 (capacidade 2)</option>
+            <option>Lab. 2 (capacidade 1)</option>
+            <option>Lab. 3 (capacidade 3)</option>
+          </select>
+
+          <div style="margin-top:12px">
+            <div class="cal-header">
+              <button onclick="mudarMes(-1)">◀</button>
+              <div id="mesAno" class="muted"></div>
+              <button onclick="mudarMes(1)">▶</button>
+            </div>
+            <div id="calendario" class="calendar"></div>
+            <div id="listaHorarios" style="display:none;margin-top:10px;background:#fff8f8;border:1px solid #f0d0d0;padding:10px;border-radius:8px"></div>
+          </div>
+        </div>
+
+        <aside>
+          <label>Escolher Horário</label>
+          <select id="agHora"><option value="">Selecione um horário</option></select>
+
+          <label style="margin-top:10px">Usar Kit</label>
+          <select id="kitSelect"><option value="">Selecione um kit (opcional)</option></select>
+
+          <label style="margin-top:10px"> Materiais Adicionais</label>
+          <textarea id="materiaisAg" rows="4" placeholder="Becker x3, Ácido clorídrico 100mL"></textarea>
+
+          <div style="margin-top:12px;display:flex;gap:8px">
+            <button class="btn btn-primary" onclick="criarAgendamento()">Salvar Solicitação</button>
+            <button class="btn btn-ghost" onclick="limparAgendamento()">Limpar</button>
+          </div>
+
+          <div style="margin-top:12px">
+           <button class="btn btn-ghost" onclick="showScreen('meusAgendamentos')">Ver Meus Agendamentos</button>
+
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <!-- KITS -->
+    <section id="kits" class="container screen" style="display:none">
+      <h2>Kits</h2>
+      <div style="display:flex;gap:18px;flex-direction:column">
+        <div class="search-box">
+          <input id="searchInput" placeholder="Pesquisar reagente ou material (ex: Becker, Ácido)"/>
+          <select id="filterSelect" style="width:160px;padding:8px;border:1px solid #e3e6ea;border-radius:8px">
+            <option value="all">Todos os tipos</option>
+            <option value="reagente">Reagentes</option>
+            <option value="vidraria">Vidrarias / Materiais</option>
+          </select>
+          <div style="margin-left:auto" class="muted">Resultados: <span id="resultCount">0</span></div>
+          <div id="materiaisEmUsoContainer" style="margin-top: 20px;">
+
+  <ul id="listaMateriaisUso"></ul>
+</div>
+        </div>
+
+        <div class="grid cols-3">
+          <!-- builder -->
+          <div>
+            <label>Itens (selecione quantidade e clique "Adicionar")</label>
+            <div id="itemsList" class="items-list"></div>
+          </div>
+
+          <!-- preview + salvar -->
+          <div>
+            <label>Preview do Kit</label>
+            <div class="kit-preview" id="kitPreview">Nenhum item adicionado.</div>
+
+            <div style="margin-top:10px;display:flex;gap:8px">
+              <input id="kitNameInput" placeholder="Nome do kit (opcional)" style="flex:1;padding:8px;border:1px solid #e3e6ea;border-radius:8px"/>
+              <button class="btn btn-primary" id="btnSaveKit">Salvar Kit</button>
+            </div>
+          </div>
+
+          <!-- meus kits minimal -->
+          <div>
+            <label>Kits Padrão</label>
+            <div class="kit-row" style="background:#fff;padding:8px;border-radius:8px;margin-bottom:8px">
+              <div>Kit Reagentes</div>
+              <div class="muted">—</div>
+            </div>
+            <div class="kit-row" style="background:#fff;padding:8px;border-radius:8px;margin-bottom:14px">
+              <div>Kit Montagem</div>
+              <div class="muted">—</div>
+            </div>
+
+            <label>Meus Kits</label>
+            <div id="meusKitsList" style="background:#fff;padding:8px;border:1px solid #e8e8e8;border-radius:8px;max-height:260px;overflow:auto"></div>
+            <div style="margin-top:10px">
+              <button class="btn btn-ghost" onclick="clearAllKits()">Limpar todos os kits</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- DASHBOARD -->
+<section id="meusAgendamentos" class="screen container">
+  <h2>Meus Agendamentos</h2>
+  <p style="margin-bottom:10px;color:#555">Aqui estão seus agendamentos cadastrados no sistema.</p>
+
+  <table id="tabelaMeusAgendamentos">
+    <thead>
+      <tr>
+        <th>Data</th>
+        <th>Horário</th>
+        <th>Laboratório</th>
+        <th>Status</th>
+        <th>Ações</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td colspan="5" style="text-align:center;color:#777">Carregando...</td></tr>
+    </tbody>
+  </table>
+</section>
+
+
+   <!-- PERFIL DO PROFESSOR -->
+<section id="perfil" class="screen container" style="display:none; text-align:center;">
+
+  <h2 style="margin-bottom: 25px;">Meu Perfil</h2>
+
+  <img id="perfilFotoProf"
+       src="https://via.placeholder.com/150"
+       style="
+        width:150px;
+        height:150px;
+        border-radius:50%;
+        object-fit:cover;
+        border:4px solid #b20000;
+       ">
+
+  <p style="margin-top:20px">
+    <strong>Nome:</strong>
+    <span id="perfilNomeProf">Carregando...</span>
+  </p>
+
+  <p>
+    <strong>Email:</strong>
+    <span id="perfilEmailProf">Carregando...</span>
+  </p>
+
+  <button onclick="abrirModalPerfilProf()"
+          style="
+            margin-top:15px;
+            padding:10px 20px;
+            border:none;
+            border-radius:8px;
+            background:#b20000;
+            color:white;
+            cursor:pointer;
+          ">
+    Editar perfil
+  </button>
+
+</section>
+
+
+  </main>
+
+
+<!-- MODAL EDITAR PERFIL PROFESSOR -->
+<div id="modalPerfilProf" class="modal-backdrop" style="display:none;">
+  <div class="modal">
+
+    <h3>Editar Perfil</h3>
+
+    <label>Nome</label>
+    <input type="text" id="editPerfilNomeProf">
+
+    <label>Email</label>
+    <input type="email" id="editPerfilEmailProf">
+
+    <label>Foto</label>
+    <input type="file" id="editPerfilFotoProf">
+
+    <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:15px;">
+      <button class="btn-primary" onclick="salvarPerfilEditadoProf()">Salvar</button>
+      <button class="btn-secondary" onclick="fecharModalPerfilProf()">Cancelar</button>
+    </div>
+
+  </div>
+</div>
+
+
+  <!-- Modal: visualizar kit -->
+<!-- Modal: visualizar/editar Kit -->
+<div id="kitModalBackdrop" class="modal-backdrop" style="
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.45);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="kitModalTitle"
+       style="background: #fff; padding: 20px; border-radius: 12px; width: 480px; max-width: 95%;">
+    <div class="modal-header" style="display:flex; justify-content:space-between; align-items:center;">
+      <h3 id="kitModalTitle">Kit</h3>
+      <button class="close-btn" onclick="closeModal('kitModalBackdrop')" 
+              style="border:none;background:none;font-size:20px;cursor:pointer;">✖</button>
+    </div>
+
+    <div id="kitModalContent" style="margin-top:10px;"></div>
+
+    <div style="margin-top:18px; display:flex; gap:10px; justify-content:flex-end;">
+      <button class="btn btn-primary" id="modalEditKitBtn"
+              style="padding:8px 14px; background:#b20000; color:#fff; border:none; border-radius:6px; cursor:pointer;">
+        Editar Kit
+      </button>
+
+      <button class="btn btn-ghost"
+              onclick="closeModal('kitModalBackdrop')"
+              style="padding:8px 14px; background:#f0f0f0; border:none; border-radius:6px; cursor:pointer;">
+        Fechar
+      </button>
+    </div>
+  </div>
+</div>
+
+
+  <!-- Modal: visualizar agendamento -->
+  <div id="apptModalBackdrop" class="modal-backdrop">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="apptModalTitle">
+      <div class="modal-header">
+        <h3 id="apptModalTitle">Detalhes do Agendamento</h3>
+        <button class="close-btn" onclick="closeModal('apptModalBackdrop')">✖</button>
+      </div>
+      <div id="apptModalContent"></div>
+      <div style="margin-top:12px;display:flex;gap:8px">
+        <button class="btn btn-primary" id="modalEditKitFromApptBtn">Editar Kit</button>
+        <button class="btn btn-ghost" id="modalCancelApptBtn">Cancelar Agendamento</button>
+        <button class="btn btn-ghost" onclick="closeModal('apptModalBackdrop')">Fechar</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /* ============================
+       Dados (amostras; substitua se quiser)
+       Vidrarias: qty | name | unit
+       Reagentes: name | unit
+    ============================ */
+    const vidrariasList = [
+      { qty: 10, name: "Becker 50 mL", unit: "un" },
+      { qty: 8, name: "Becker 100 mL", unit: "un" },
+      { qty: 6, name: "Becker 250 mL", unit: "un" },
+      { qty: 4, name: "Erlenmeyer 250 mL", unit: "un" },
+      { qty: 12, name: "Proveta 100 mL", unit: "un" },
+      { qty: 20, name: "Tubo de ensaio 16x150 mm", unit: "un" },
+      { qty: 5, name: "Bico de Bunsen", unit: "un" },
+      { qty: 3, name: "Microscópio (básico)", unit: "un" }
+    ];
+    const reagentesList = [
+      { name: "Ácido Clorídrico 500 mL", unit: "mL" },
+      { name: "Cloreto de Sódio", unit: "g" },
+      { name: "Álcool etílico 70%", unit: "mL" },
+      { name: "Glicerina", unit: "mL" },
+      { name: "Acetona", unit: "mL" },
+      { name: "Bicarbonato de Sódio", unit: "g" }
+    ];
+async function carregarMateriaisKits() {
+  try {
+    const res = await fetch("http://localhost:3000/materiais");
+    if (!res.ok) throw new Error("Erro ao carregar materiais do MongoDB.");
+
+    const dados = await res.json();
+
+    // Converte os materiais do MongoDB para o formato usado pelos kits
+    items = dados.map((m, index) => ({
+      type: "vidraria",
+      id: "db" + index,
+      name: m.nome,
+      unit: m.unidade || "un",
+      qty: m.quantidade || 0
+    }));
+
+    renderItems(); // já existe no seu código
+  } catch (err) {
+    console.error(err);
+    alert("Erro ao carregar materiais na aba Kits.");
+  }
+}
+
+    const horariosETEC = [
+      "07:10 - 08:00","08:00 - 08:50","08:50 - 09:40",
+      "10:00 - 10:50","10:50 - 11:40","11:40 - 12:30",
+      "13:00 - 13:50","13:50 - 14:40","14:40 - 15:30",
+      "15:50 - 16:40","16:40 - 17:30","17:30 - 18:20",
+      "18:50 - 20:44","20:58 - 22:50"
+    ];
+
+    /* ===== App state (localStorage) ===== */
+    // agendamentos por laboratório: { labName: { 'YYYY-MM-DD': [times...] } }
+    const labs = ["Lab. 1 (capacidade 2)", "Lab. 2 (capacidade 1)", "Lab. 3 (capacidade 3)"];
+    let kitsPersonalizados = JSON.parse(localStorage.getItem('kitsPersonalizados') || '[]'); // array {id,nome,items}
+    let apptsMap = JSON.parse(localStorage.getItem('appts') || '{}'); // id -> appt
+    let agendamentos = JSON.parse(localStorage.getItem('agendamentos') || '{}'); // lab -> { date -> [times] }
+    // ensure each lab exists in structure
+    labs.forEach(l => { if(!agendamentos[l]) agendamentos[l] = {}; });
+
+    /* unify items (for search/builder) */
+    let items = [];
+    function buildItems(){
+      items = [];
+      reagentesList.forEach((r,i)=> items.push({ type:'reagente', id:'r'+i, name:r.name, unit:r.unit, qty:null }));
+      vidrariasList.forEach((v,i)=> items.push({ type:'vidraria', id:'v'+i, name:v.name, unit:v.unit, qty: v.qty != null ? Number(v.qty) : null }));
+    }
+    buildItems();
+
+    /* temp kit */
+    let tempKit = []; // {id,type,name,unit,qtySelected}
+    let editingKitId = null; // if editing saved kit
+
+    /* calendar */
+    let mesAtual = new Date().getMonth();
+    let anoAtual = new Date().getFullYear();
+    let dataSelecionada = null;
+
+    /* DOM refs */
+    const itemsListEl = document.getElementById('itemsList');
+    const searchInput = document.getElementById('searchInput');
+    const filterSelect = document.getElementById('filterSelect');
+    const resultCount = document.getElementById('resultCount');
+    const kitPreviewEl = document.getElementById('kitPreview');
+    const kitNameInput = document.getElementById('kitNameInput');
+    const meusKitsList = document.getElementById('meusKitsList');
+    const kitSelect = document.getElementById('kitSelect');
+    const meusAgsBody = document.getElementById('meusAgs');
+    const totalApptsEl = document.getElementById('totalAppts');
+
+    /* init */
+    document.addEventListener('DOMContentLoaded', ()=>{
+      // menu links
+      document.querySelectorAll('.faixa-vinho nav a').forEach(a=>{
+        a.addEventListener('click', e=>{
+          e.preventDefault();
+          showScreen(a.getAttribute('data-screen'));
+        });
+      });
+
+      // kit builder
+      document.getElementById('btnSaveKit').addEventListener('click', saveKitFromTemp);
+      searchInput.addEventListener('input', renderItems);
+      filterSelect.addEventListener('change', renderItems);
+
+      // lab change -> regenerate calendar
+      document.getElementById('labSelect').addEventListener('change', ()=>{
+        // clear dataSelecionada so user intentionally selects a date, or preserve? We preserve selection if same date exists
+        gerarCalendario(mesAtual, anoAtual);
+        // if there's selection and the selected date has availability for the new lab, highlight it
+        if(dataSelecionada){
+          // try reselect the same day for new lab
+          const cal = document.getElementById('calendario');
+          const existing = cal.querySelector(`.cell[data-date="${dataSelecionada}"]`);
+          if(existing) {
+            // highlight and open times for this lab
+            selecionarDia(existing, dataSelecionada, document.getElementById('labSelect').value);
+          } else {
+            // clear selection
+            document.querySelectorAll('#calendario .cell.dia-selecionado').forEach(x=>x.classList.remove('dia-selecionado'));
+            dataSelecionada = null;
+            document.getElementById('listaHorarios').style.display='none';
+            document.getElementById('agHora').innerHTML='<option value="">Selecione um horário</option>';
+          }
+        }
+      });
+
+      renderItems();
+      renderKitPreview();
+      renderSavedKits();
+      populateKitSelect();
+      gerarCalendario(mesAtual, anoAtual);
+      showScreen('agendamento');
+
+
+    });
+
+function showScreen(id) {
+  // Esconde todas as telas
+  document.querySelectorAll('.screen').forEach(s => (s.style.display = 'none'));
+
+  // Mostra apenas a tela selecionada
+  document.getElementById(id).style.display = 'block';
+
+  // Se a aba "Agendar Experimento" for aberta
+  if (id === 'agendamento') gerarCalendario(mesAtual, anoAtual);
+
+  // Se abrir "Meus Agendamentos", carrega do MongoDB
+  if (id === 'meusAgendamentos') carregarAgendamentosProfessor();
+  if (id === "kits") {
+  carregarMateriaisKits();
+}
+
+  // Rolagem suave pro topo
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function renderItems() {
+  const q = (searchInput.value || "").trim().toLowerCase();
+  const filter = filterSelect.value;
+
+  itemsListEl.innerHTML = "";
+  let count = 0;
+
+  items.forEach(it => {
+    if (filter !== "all" && it.type !== filter) return;
+    if (q && !it.name.toLowerCase().includes(q)) return;
+
+    count++;
+
+    const card = document.createElement("div");
+    card.className = "item-card";
+
+    const info = document.createElement("div");
+    info.className = "item-info";
+    info.innerHTML = `
+      <div class="item-name">${it.name}</div>
+      <div class="item-meta">
+        ${it.unit} • Disponível: ${it.qty}
+      </div>
+    `;
+
+    const controls = document.createElement("div");
+    controls.className = "qty-controls";
+
+    const inputQty = document.createElement("input");
+    inputQty.type = "number";
+    inputQty.min = 1;
+    inputQty.max = it.qty;
+    inputQty.placeholder = "Qtd.";
+    inputQty.style.width = "70px";
+
+    const addBtn = document.createElement("button");
+    addBtn.className = "btn btn-primary";
+    addBtn.textContent = "+";
+    addBtn.onclick = () => {
+      const val = Number(inputQty.value);
+      if (!val || val < 1) return alert("Quantidade inválida");
+      if (val > it.qty) return alert("Quantidade maior que disponível");
+
+      tempKit.push({
+        id: it.id,
+        name: it.name,
+        unit: it.unit,
+        qtySelected: val
+      });
+
+      renderKitPreview();
+    };
+
+    controls.appendChild(inputQty);
+    controls.appendChild(addBtn);
+
+    card.appendChild(info);
+    card.appendChild(controls);
+
+    itemsListEl.appendChild(card);
+  });
+
+  resultCount.textContent = count;
+}
+function addToTempKit(item){
+      const found = tempKit.find(i=>i.id===item.id);
+      if(found){
+        const original = items.find(it=>it.id===item.id);
+        const newQty = found.qtySelected + item.qtySelected;
+        if(original.qty != null && newQty > original.qty){ alert('Excede quantidade disponível'); return; }
+        found.qtySelected = newQty;
+      } else tempKit.push({...item});
+      renderKitPreview();
+    }
+
+    function renderKitPreview(){
+      if(tempKit.length === 0){ kitPreviewEl.innerHTML = 'Nenhum item adicionado.'; return; }
+      kitPreviewEl.innerHTML = '';
+      tempKit.forEach((k, idx)=>{
+        const row = document.createElement('div'); row.className='kit-item';
+        const info = document.createElement('div'); info.style.flex='1';
+        info.innerHTML = `<strong>${k.name}</strong><div class="muted">${k.unit?k.unit:''}</div>`;
+        const qtyInput = document.createElement('input'); qtyInput.type='number'; qtyInput.value=k.qtySelected; qtyInput.min=1; qtyInput.style.width='80px';
+        const original = items.find(it=>it.id===k.id);
+        if(original && original.qty != null) qtyInput.max = original.qty;
+        qtyInput.onchange = ()=>{
+          let v = Number(qtyInput.value) || 1;
+          if(original && original.qty != null && v > original.qty){ alert('Excede estoque disponível ('+original.qty+')'); qtyInput.value=k.qtySelected; return; }
+          k.qtySelected = v;
+          renderKitPreview();
+        };
+        const btnRem = document.createElement('button'); btnRem.className='action-btn'; btnRem.title='Remover'; btnRem.innerHTML='🗑️';
+        btnRem.onclick = ()=> { tempKit.splice(idx,1); renderKitPreview(); };
+        row.appendChild(info); row.appendChild(qtyInput); row.appendChild(btnRem);
+        kitPreviewEl.appendChild(row);
+      });
+      const total = tempKit.reduce((s,i)=>s+i.qtySelected,0);
+      const foot = document.createElement('div'); foot.style.marginTop='8px'; foot.innerHTML = `<div class="muted">Total de itens: <strong>${total}</strong></div>`;
+      kitPreviewEl.appendChild(foot);
+    }
+
+    /* ===== create / edit / delete kits ===== */
+    function generateId(prefix='k'){ return prefix + '_' + Date.now() + '_' + Math.floor(Math.random()*900+100); }
+
+    async function saveKitFromTemp() {
+  if (tempKit.length === 0) return alert("Adicione pelo menos 1 item.");
+
+  const usuario = JSON.parse(sessionStorage.getItem("currentUser"));
+  if (!usuario) return alert("Usuário não logado!");
+
+  const nome = kitNameInput.value.trim() || `Kit ${tempKit.length} itens`;
+
+  const body = {
+    nome,
+    professor: usuario.nome,
+    items: tempKit
+  };
+
+  try {
+    let res;
+
+    if (editingKitId) {
+      // 🔥 PUT correto
+      res = await fetch(`http://localhost:3000/kits/${editingKitId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body)
+      });
+      if (!res.ok) throw new Error("Erro ao atualizar kit");
+
+      alert("Kit atualizado!");
+    } else {
+      // 🔥 POST correto
+      res = await fetch("http://localhost:3000/kits", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body)
+      });
+      if (!res.ok) throw new Error("Erro ao criar kit");
+
+      alert("Kit criado!");
+    }
+
+    tempKit = [];
+    editingKitId = null;
+    kitNameInput.value = "";
+    renderKitPreview();
+    carregarKitsDoProfessor();
+
+  } catch (err) {
+    console.error("saveKitFromTemp ERRO:", err);
+    alert("Erro ao salvar kit.");
+  }
+}
+
+
+    function renderSavedKits(){
+      kitsPersonalizados = JSON.parse(localStorage.getItem('kitsPersonalizados') || '[]');
+      meusKitsList.innerHTML = '';
+      if(kitsPersonalizados.length === 0){ meusKitsList.innerHTML = '<div class="muted" style="padding:8px">Nenhum kit salvo.</div>'; populateKitSelect(); return; }
+      kitsPersonalizados.forEach(k=>{
+        const row = document.createElement('div'); row.className='kit-row';
+        const left = document.createElement('div'); left.textContent = k.nome;
+        const right = document.createElement('div');
+        const viewBtn = document.createElement('button'); viewBtn.className='icon-btn'; viewBtn.title='Visualizar kit'; viewBtn.innerHTML='🔍'; viewBtn.onclick = ()=> openKitModal(k.id);
+        const editBtn = document.createElement('button'); editBtn.className='icon-btn'; editBtn.title='Editar kit'; editBtn.innerHTML='✏️'; editBtn.onclick = ()=> loadKitToEdit(k.id);
+        const delBtn = document.createElement('button'); delBtn.className='icon-btn'; delBtn.title='Excluir kit'; delBtn.innerHTML='🗑️'; delBtn.onclick = ()=> { if(confirm('Excluir kit?')) deleteKit(k.id); };
+        right.appendChild(viewBtn); right.appendChild(editBtn); right.appendChild(delBtn);
+        row.appendChild(left); row.appendChild(right);
+        meusKitsList.appendChild(row);
+      });
+      populateKitSelect();
+    }
+
+function openKitModal(kit) {
+  document.getElementById("kitModalTitle").textContent = kit.nome;
+
+  document.getElementById("kitModalContent").innerHTML =
+    kit.items.map(it => `
+      <div>
+        ${it.name} — ${it.qtySelected} ${it.unit}
+      </div>
+    `).join("");
+
+  document.getElementById("modalEditKitBtn").onclick = () => {
+    closeModal("kitModalBackdrop");
+    abrirModalBuilder(null, kit._id);
+  };
+
+  showModal("kitModalBackdrop");
+}
+
+
+    function loadKitToEdit(kitId){
+      const kit = kitsPersonalizados.find(k=>k.id===kitId);
+      if(!kit) return alert('Kit não encontrado');
+      tempKit = JSON.parse(JSON.stringify(kit.items));
+      editingKitId = kit.id;
+      kitNameInput.value = kit.nome;
+      renderKitPreview();
+      showScreen('kits');
+      window.scrollTo({top:0,behavior:'smooth'});
+    }
+
+    function deleteKit(kitId){
+      const idx = kitsPersonalizados.findIndex(k=>k.id===kitId);
+      if(idx>=0){ kitsPersonalizados.splice(idx,1); localStorage.setItem('kitsPersonalizados', JSON.stringify(kitsPersonalizados)); renderSavedKits(); populateKitSelect(); alert('Kit removido.'); }
+    }
+
+    function clearAllKits(){ if(!confirm('Remover todos os kits salvos?')) return; kitsPersonalizados = []; localStorage.setItem('kitsPersonalizados','[]'); renderSavedKits(); populateKitSelect(); }
+
+    /* ===== populate select kits (agendamento) ===== */
+    function populateKitSelect(){
+      kitSelect.innerHTML = '<option value="">Selecione um kit (opcional)</option>';
+      const o1 = document.createElement('option'); o1.value='__padrao_kit_reagentes'; o1.textContent='Kit Reagentes';
+      const o2 = document.createElement('option'); o2.value='__padrao_kit_montagem'; o2.textContent='Kit Montagem';
+      kitSelect.appendChild(o1); kitSelect.appendChild(o2);
+      kitsPersonalizados.forEach(k=>{
+        const opt = document.createElement('option'); opt.value='__meu_'+k.id; opt.textContent = k.nome; kitSelect.appendChild(opt);
+      });
+    }
+
+    /* ===== calendar & appointments (lab-aware) ===== */
+    function gerarCalendario(mes, ano){
+      const lab = document.getElementById('labSelect').value;
+      const diasSemana = ["Dom","Seg","Ter","Qua","Qui","Sex","Sáb"];
+      const cal = document.getElementById('calendario'); cal.innerHTML = '';
+      document.getElementById('mesAno').textContent = new Date(ano, mes).toLocaleDateString('pt-BR',{ month:'long', year:'numeric' });
+
+      // headers
+      diasSemana.forEach(d=>{ const h=document.createElement('div'); h.className='cell header'; h.textContent=d; cal.appendChild(h); });
+
+      const primeiro = new Date(ano,mes,1);
+      const ultimo = new Date(ano,mes+1,0);
+      const inicio = primeiro.getDay();
+
+      for(let i=0;i<inicio;i++){ const ph = document.createElement('div'); ph.className='placeholder'; cal.appendChild(ph); }
+
+      for(let d=1; d<=ultimo.getDate(); d++){
+        const dataFmt = `${ano}-${String(mes+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+        const c = document.createElement('div'); c.className='cell';
+        c.dataset.date = dataFmt;
+        const num = document.createElement('div'); num.className='day-num'; num.textContent = d;
+        c.appendChild(num);
+
+        if(agendamentos[lab] && agendamentos[lab][dataFmt] && agendamentos[lab][dataFmt].length) c.classList.add('dia-agendado');
+
+        c.addEventListener('click', ()=> selecionarDia(c, dataFmt, lab));
+        cal.appendChild(c);
+      }
+
+      // reaplica seleção visual se a data selecionada estiver neste mês e lab
+      if(dataSelecionada){
+        const existing = cal.querySelector(`.cell[data-date="${dataSelecionada}"]`);
+        if(existing){
+          // ensure highlight only once
+          document.querySelectorAll('#calendario .cell.dia-selecionado').forEach(x=>x.classList.remove('dia-selecionado'));
+          existing.classList.add('dia-selecionado');
+        } else {
+          // remove selection visual if not in view
+          document.querySelectorAll('#calendario .cell.dia-selecionado').forEach(x=>x.classList.remove('dia-selecionado'));
+        }
+      }
+    }
+
+    function mudarMes(delta){
+      mesAtual += delta;
+      if(mesAtual < 0){ mesAtual = 11; anoAtual--; }
+      else if(mesAtual > 11){ mesAtual = 0; anoAtual++; }
+      gerarCalendario(mesAtual, anoAtual);
+    }
+
+    /* ===== SELECIONAR DIA (mostra horários ocupados e remove do select) ===== */
+async function selecionarDia(cell, dataFmt, lab) {
+  try {
+    // Limpa a seleção visual anterior
+    document.querySelectorAll('#calendario .cell:not(.header)').forEach(c => c.classList.remove('dia-selecionado'));
+    cell.classList.add('dia-selecionado');
+    dataSelecionada = dataFmt;
+
+    const lista = document.getElementById('listaHorarios');
+    const sel = document.getElementById('agHora');
+    lista.style.display = 'block';
+    sel.innerHTML = '<option value="">Selecione um horário</option>';
+
+    // 🔹 1. Buscar todos agendamentos do MongoDB
+    const res = await fetch('http://localhost:3000/agendamentos');
+    if (!res.ok) throw new Error('Falha ao buscar agendamentos');
+    const todos = await res.json();
+
+    // 🔹 2. Filtrar apenas os do mesmo lab e data
+    const agsMesmoDia = todos.filter(a =>
+      a.laboratorio?.trim().toLowerCase() === lab.trim().toLowerCase() &&
+      a.data === dataFmt
+    );
+
+    // 🔹 3. Gerar lista de horários já ocupados
+    const ocupados = agsMesmoDia.map(a => a.hora);
+    if (ocupados.length > 0) {
+      lista.innerHTML = `
+        <strong>Horários já reservados:</strong>
+        <ul style="margin-left:16px;margin-top:8px">
+          ${ocupados.map(h => `<li>${h}</li>`).join('')}
+        </ul>`;
+    } else {
+      lista.innerHTML = '<strong>Nenhum horário reservado neste dia.</strong>';
+    }
+
+    // 🔹 4. Popular o <select> apenas com horários livres
+    horariosETEC.forEach(h => {
+      if (!ocupados.includes(h)) {
+        const o = document.createElement('option');
+        o.value = h;
+        o.textContent = h;
+        sel.appendChild(o);
+      }
+    });
+  } catch (err) {
+    console.error('Erro ao carregar horários do dia:', err);
+    alert('Erro ao buscar horários disponíveis.');
+  }
+}
+
+
+    /* ===== CRIAR AGENDAMENTO (impede duplicidade de horário) ===== */
+
+function renderMeusAgendamentos() {
+  const meusAgsBody = document.getElementById('meusAgsBody');
+  const totalApptsEl = document.getElementById('totalAppts');
+  meusAgsBody.innerHTML = '';
+
+  const apptsMap = JSON.parse(localStorage.getItem('appts') || '{}');
+
+  // Ordena por data e hora
+  const arr = Object.values(apptsMap).sort((a, b) =>
+    (a.date || '').localeCompare(b.date || '') ||
+    (a.time || '').localeCompare(b.time || '')
+  );
+
+  if (arr.length === 0) {
+    meusAgsBody.innerHTML =
+      '<tr><td colspan="5" class="muted">Nenhum agendamento.</td></tr>';
+    totalApptsEl.textContent = '0';
+    return;
+  }
+
+  arr.forEach(appt => {
+    const tr = document.createElement('tr');
+    const [ano, mes, dia] = (appt.date || '').split('-');
+
+    // Data
+    const tdData = document.createElement('td');
+    tdData.textContent = dia ? `${dia}/${mes}/${ano}` : '—';
+    tdData.style.padding = '10px';
+    tr.appendChild(tdData);
+
+    // Hora
+    const tdHora = document.createElement('td');
+    tdHora.textContent = appt.time || '—';
+    tdHora.style.padding = '10px';
+    tr.appendChild(tdHora);
+
+    // Laboratório
+    const tdLab = document.createElement('td');
+    tdLab.textContent = appt.lab || '—';
+    tdLab.style.padding = '10px';
+    tr.appendChild(tdLab);
+
+    // Status (badge igual ao técnico)
+    const status = appt.status || 'Pendente';
+    const tdStatus = document.createElement('td');
+    const badge = document.createElement('span');
+    badge.textContent = status;
+    badge.style.display = 'inline-block';
+    badge.style.padding = '4px 10px';
+    badge.style.borderRadius = '6px';
+    badge.style.fontWeight = '600';
+    badge.style.fontSize = '12px';
+    badge.style.minWidth = '85px';
+    badge.style.textAlign = 'center';
+    badge.style.border = '1px solid rgba(0,0,0,0.1)';
+    badge.style.boxShadow = '0 1px 2px rgba(0,0,0,0.08)';
+    if (status === 'Separado') {
+      badge.style.backgroundColor = 'rgba(46,204,113,0.15)';
+      badge.style.color = '#27ae60';
+      badge.style.borderColor = 'rgba(39,174,96,0.3)';
+    } else {
+      badge.style.backgroundColor = 'rgba(231,76,60,0.15)';
+      badge.style.color = '#c0392b';
+      badge.style.borderColor = 'rgba(192,57,43,0.3)';
+    }
+    tdStatus.appendChild(badge);
+    tdStatus.style.padding = '10px';
+    tr.appendChild(tdStatus);
+
+    // Ações
+    const tdAcoes = document.createElement('td');
+    tdAcoes.style.padding = '10px';
+    tdAcoes.style.display = 'flex';
+    tdAcoes.style.alignItems = 'center';
+    tdAcoes.style.gap = '6px';
+
+    const btnVer = document.createElement('button');
+    btnVer.className = 'action-btn';
+    btnVer.textContent = '🔍';
+    btnVer.title = 'Ver detalhes';
+    btnVer.onclick = () => openApptModal(appt.id);
+
+    const btnEditar = document.createElement('button');
+    btnEditar.className = 'action-btn';
+    btnEditar.textContent = '🧪';
+    btnEditar.title = 'Editar kit';
+    btnEditar.onclick = () => openApptModal(appt.id);
+
+    const btnCancelar = document.createElement('button');
+    btnCancelar.className = 'action-btn';
+    btnCancelar.textContent = '🗑️';
+    btnCancelar.title = 'Cancelar';
+    btnCancelar.onclick = () => cancelAppt(appt.id);
+
+    // --- novo botão: visualizar observação do técnico ---
+    const btnObs = document.createElement('button');
+    btnObs.className = 'action-btn';
+    btnObs.textContent = '💬';
+    btnObs.title = 'Ver observação do técnico';
+    btnObs.style.marginLeft = '18px'; // 👈 deixa afastado da lixeira
+    btnObs.onclick = () => {
+      const appts = JSON.parse(localStorage.getItem('appts') || '{}');
+      const a = appts[appt.id];
+      const msg = a && a.observacaoTecnico ? a.observacaoTecnico : '(Nenhuma observação registrada)';
+      mostrarModalObs(msg);
+    };
+
+    tdAcoes.append(btnVer, btnEditar, btnCancelar, btnObs);
+    tr.appendChild(tdAcoes);
+
+    meusAgsBody.appendChild(tr);
+  });
+
+  totalApptsEl.textContent = arr.length;
+}
+async function openApptModal(id) {
+  try {
+    const res = await fetch(`http://localhost:3000/agendamentos`);
+    const lista = await res.json();
+    const ag = lista.find(a => a._id === id);
+
+    if (!ag) {
+      alert("Agendamento não encontrado.");
+      return;
+    }
+
+    let html = `
+      <p><strong>Data:</strong> ${new Date(ag.data).toLocaleDateString('pt-BR')}</p>
+      <p><strong>Horário:</strong> ${ag.hora}</p>
+      <p><strong>Laboratório:</strong> ${ag.laboratorio}</p>
+      <p><strong>Status:</strong> ${ag.status}</p>
+    `;
+
+    if (ag.materiais && ag.materiais.length > 0) {
+      html += `<p><strong>Materiais adicionais:</strong> ${ag.materiais}</p>`;
+    }
+
+    if (ag.kitId) {
+      const kitRes = await fetch(`http://localhost:3000/kits/kit/${ag.kitId}`);
+      const kit = await kitRes.json();
+
+      html += `<h4 style="margin-top:12px">Kit Selecionado: ${kit.nome}</h4>`;
+
+      html += kit.items.map(i =>
+        `<div>${i.name} — ${i.qtySelected} ${i.unit}</div>`
+      ).join("");
+    } else {
+      html += `<p><strong>Kit:</strong> Nenhum</p>`;
+    }
+
+    document.getElementById("apptModalContent").innerHTML = html;
+
+    // Botão editar kit
+    document.getElementById("modalEditKitFromApptBtn").onclick = () => {
+      editarKitDoAgendamento(id, ag.kitId);
+    };
+
+    // Botão cancelar
+    document.getElementById("modalCancelApptBtn").onclick = () => cancelarAgendamento(id);
+
+    showModal("apptModalBackdrop");
+
+  } catch (err) {
+    console.error(err);
+    alert("Erro ao abrir agendamento");
+  }
+}
+
+async function updateApptKit(id) {
+  const newKitId = document.getElementById("newKitSelect").value;
+
+  try {
+    const res = await fetch(`http://localhost:3000/agendamentos/${id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ kitId: newKitId || null })
+    });
+
+    if (!res.ok) throw new Error("Erro ao atualizar kit");
+
+    alert("Kit atualizado!");
+    closeModal("modalVerAgendamento");
+    carregarAgendamentosProfessor();
+
+  } catch (err) {
+    console.error(err);
+  }
+}
+
+
+// Cria o modal de observação se não existir
+function mostrarModalObs(texto) {
+  let modal = document.getElementById('modalObsTecnico');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'modalObsTecnico';
+    modal.style.cssText = `
+      position:fixed;inset:0;display:flex;align-items:center;justify-content:center;
+      background:rgba(0,0,0,0.45);z-index:999;`;
+    modal.innerHTML = `
+      <div style="background:#fff;border-radius:10px;padding:18px;max-width:500px;width:90%;
+                  box-shadow:0 8px 30px rgba(0,0,0,0.25);">
+        <h3 style="margin-bottom:8px;">💬 Observação do Técnico</h3>
+        <div id="textoObsTecnico" style="white-space:pre-wrap;color:#333;
+             background:#fafafa;border:1px solid #eee;border-radius:6px;
+             padding:10px;min-height:60px;"></div>
+        <div style="margin-top:12px;display:flex;justify-content:flex-end;">
+          <button id="fecharObsTecnico" 
+            style="padding:6px 14px;border:none;background:#b20000;color:#fff;
+                   border-radius:6px;cursor:pointer;">Fechar</button>
+        </div>
+      </div>`;
+    document.body.appendChild(modal);
+    modal.addEventListener('click', ev => {
+      if (ev.target === modal) modal.style.display = 'none';
+    });
+    modal.querySelector('#fecharObsTecnico').onclick = () => (modal.style.display = 'none');
+  }
+  modal.querySelector('#textoObsTecnico').textContent = texto;
+  modal.style.display = 'flex';
+}
+
+// Atualiza automaticamente se técnico mudar algo
+window.addEventListener('storage', (event) => {
+  if (['appts', 'agendamentos'].includes(event.key)) {
+    renderMeusAgendamentos();
+  }
+});
+
+
+    // OPEN APPOINTMENT MODAL — allows adding/changing kit after creation
+    function openApptModal(apptId){
+      const appt = (JSON.parse(localStorage.getItem('appts')||'{}'))[apptId];
+      const content = document.getElementById('apptModalContent');
+      if(!appt){ content.innerHTML = '<div class="muted">Agendamento não encontrado.</div>'; showModal('apptModalBackdrop'); return; }
+
+      const [ano,mes,dia] = appt.date.split('-');
+      let html = `<div><strong>Data:</strong> ${dia}/${mes}/${ano}</div><div><strong>Hora:</strong> ${appt.time}</div><div><strong>Laboratório:</strong> ${appt.lab}</div>`;
+
+      if(appt.kit){
+        if(appt.kit.type === 'saved'){
+          const kit = kitsPersonalizados.find(k=>k.id===appt.kit.kitId);
+          html += `<div style="margin-top:8px"><strong>Kit atual:</strong> ${kit ? kit.nome : '(kit removido)'}</div>`;
+          if(kit) html += `<div style="margin-top:6px" class="muted">${kit.items.map(it=>`${it.name} x${it.qtySelected}`).join('<br>')}</div>`;
+        } else if(appt.kit.type === 'padrao'){
+          html += `<div style="margin-top:8px"><strong>Kit atual:</strong> (Kit padrão)</div>`;
+        } else if(appt.kit.type === 'snapshot'){
+          html += `<div style="margin-top:8px"><strong>Kit atual (snapshot):</strong></div><div class="muted" style="margin-top:6px">${appt.kit.snapshot.map(it=>`${it.name} x${it.qtySelected}`).join('<br>')}</div>`;
+        }
+      } else {
+        html += `<div style="margin-top:8px"><strong>Kit atual:</strong> — Nenhum kit selecionado.</div>`;
+      }
+
+      // selector to add/change kit AFTER creation
+      html += `
+        <div style="margin-top:10px">
+          <label for="newKitSelect"><strong>Selecionar ou alterar Kit:</strong></label>
+          <select id="newKitSelect" style="width:100%;padding:8px;border:1px solid #ccc;border-radius:8px;margin-top:6px">
+            <option value="">Nenhum</option>
+            <option value="__padrao_kit_reagentes">Kit Reagentes</option>
+            <option value="__padrao_kit_montagem">Kit Montagem</option>
+            ${kitsPersonalizados.map(k=>`<option value="__meu_${k.id}" ${appt.kit && appt.kit.type==='saved' && appt.kit.kitId===k.id ? 'selected' : ''}>${k.nome}</option>`).join('')}
+          </select>
+          <div style="display:flex;gap:8px;margin-top:8px">
+            <button class="btn btn-primary" onclick="updateApptKit('${apptId}')">Salvar Kit</button>
+            <button class="btn btn-ghost" onclick="removeKitFromAppt('${apptId}')">Remover Kit</button>
+          </div>
+        </div>
+      `;
+
+      if(appt.materiaisAdicionais) html += `<div style="margin-top:8px"><strong>Materiais Adicionais: </strong> ${appt.materiaisAdicionais}</div>`;
+
+      content.innerHTML = html;
+
+      // modal "Editar kit" button
+      document.getElementById('modalEditKitFromApptBtn').onclick = ()=> {
+        if(appt.kit && appt.kit.type === 'saved'){
+          loadKitToEdit(appt.kit.kitId);
+          closeModal('apptModalBackdrop');
+        } else if(appt.kit && appt.kit.type === 'snapshot'){
+          tempKit = JSON.parse(JSON.stringify(appt.kit.snapshot));
+          editingKitId = null;
+          kitNameInput.value = `Kit do agendamento ${appt.time} ${dia}/${mes}`;
+          renderKitPreview();
+          closeModal('apptModalBackdrop');
+          showScreen('kits');
+          // update appointment after saving new kit (one-time hook)
+          const handler = ()=>{
+            const last = kitsPersonalizados[kitsPersonalizados.length-1];
+            if(last){
+              apptsMap = JSON.parse(localStorage.getItem('appts') || '{}');
+              if(apptsMap[apptId]){
+                apptsMap[apptId].kit = { type:'saved', kitId: last.id };
+                localStorage.setItem('appts', JSON.stringify(apptsMap));
+                renderMeusAgendamentos();
+                alert('Agendamento atualizado para usar o novo kit salvo.');
+              }
+            }
+            document.getElementById('btnSaveKit').removeEventListener('click', handler);
+          };
+          document.getElementById('btnSaveKit').addEventListener('click', handler);
+        } else {
+          alert('Não há kit salvo para editar neste agendamento.');
+        }
+      };
+
+      document.getElementById('modalCancelApptBtn').onclick = ()=> {
+        if(confirm('Cancelar este agendamento?')){ cancelAppt(apptId); closeModal('apptModalBackdrop'); }
+      };
+
+      showModal('apptModalBackdrop');
+    }
+
+    // update appointment with chosen kit
+async function updateApptKit(apptId){
+  const sel = document.getElementById('newKitSelect');
+  if(!sel) return alert('Selecione um kit.');
+  const newKitValue = sel.value;
+  const appts = JSON.parse(localStorage.getItem('appts') || '{}');
+  const appt = appts[apptId];
+  if(!appt) return alert('Agendamento não encontrado.');
+
+  if(!newKitValue){
+    appt.kit = null;
+  } else if(newKitValue.startsWith('__meu_')){
+    appt.kit = { type:'saved', kitId: newKitValue.replace('__meu_','') };
+  } else if(newKitValue.startsWith('__padrao_')){
+    appt.kit = { type:'padrao', key: newKitValue };
+  }
+
+  try {
+    const res = await fetch(`${API_BASE}/agendamentos/${apptId}`, {
+      method:'PUT',
+      headers:{ 'Content-Type':'application/json' },
+      body: JSON.stringify({ kit: appt.kit })
+    });
+
+    if(!res.ok){
+      const text = await res.text();
+      throw new Error(`Falha ao salvar no servidor: ${text}`);
+    }
+
+    // Atualiza local
+    appts[apptId] = appt;
+    localStorage.setItem('appts', JSON.stringify(appts));
+    renderMeusAgendamentos();
+    closeModal('apptModalBackdrop');
+    alert('Kit atualizado no agendamento com sucesso!');
+  } catch(err){
+    console.error(err);
+    alert('Erro ao atualizar kit no servidor: ' + err.message);
+  }
+}
+  
+async function removeKitFromAppt(apptId){
+  if(!confirm('Remover kit deste agendamento?')) return;
+  const appts = JSON.parse(localStorage.getItem('appts') || '{}');
+  const appt = appts[apptId];
+  if(!appt) return alert('Agendamento não encontrado.');
+  appt.kit = null;
+
+  try {
+    // Atualiza no MongoDB
+    await fetch(`${API_BASE}/agendamentos/${apptId}`, {
+      method:'PUT',
+      headers:{ 'Content-Type':'application/json' },
+      body: JSON.stringify({ kit: null })
+    });
+
+    // Atualiza local
+    appts[apptId] = appt;
+    localStorage.setItem('appts', JSON.stringify(appts));
+    renderMeusAgendamentos();
+    closeModal('apptModalBackdrop');
+    alert('Kit removido do agendamento com sucesso!');
+  } catch(err){
+    console.error(err);
+    alert('Erro ao remover kit no servidor.');
+  }
+}
+
+
+    function cancelAppt(apptId){
+      if(!confirm('Deseja cancelar o agendamento?')) return;
+      const appts = JSON.parse(localStorage.getItem('appts') || '{}');
+      const appt = appts[apptId];
+      if(!appt) { alert('Agendamento não encontrado'); return; }
+      if(agendamentos[appt.lab]) {
+        agendamentos[appt.lab][appt.date] = (agendamentos[appt.lab][appt.date] || []).filter(t => t !== appt.time);
+        if(agendamentos[appt.lab][appt.date] && agendamentos[appt.lab][appt.date].length === 0) delete agendamentos[appt.lab][appt.date];
+      }
+      delete appts[apptId];
+      localStorage.setItem('appts', JSON.stringify(appts));
+      localStorage.setItem('agendamentos', JSON.stringify(agendamentos));
+      renderMeusAgendamentos();
+      gerarCalendario(mesAtual, anoAtual);
+      alert('Agendamento cancelado.');
+    }
+
+    /* ===== modal helpers ===== */
+    function showModal(id){ document.getElementById(id).style.display = 'flex'; }
+    function closeModal(id){ document.getElementById(id).style.display = 'none'; }
+
+    /* ===== helpers ===== */
+    function salvarPerfil(){
+      const nome = document.getElementById('perfilNome').value.trim();
+      const email = document.getElementById('perfilEmail').value.trim();
+      const senha = document.getElementById('perfilSenha').value;
+      const perfil = { nome, email, senha: senha ? '***' : null, savedAt: new Date().toISOString() };
+      localStorage.setItem('perfil', JSON.stringify(perfil));
+      alert('Perfil salvo (local).');
+    }
+
+    // Chame esta função quando abrir a aba "Kit"
+/* ================================
+   CARREGAR KITS DO PROFESSOR
+   (Aba KITS)
+================================*/
+async function carregarKitsDoProfessor() {
+  const usuario = JSON.parse(sessionStorage.getItem("currentUser"));
+  if (!usuario || !usuario.nome) {
+    console.error("Usuário não logado");
+    return;
+  }
+
+  try {
+    const res = await fetch(`http://localhost:3000/kits/prof/${encodeURIComponent(usuario.nome)}`);
+    if (!res.ok) throw new Error("Erro ao buscar kits");
+
+    const kits = await res.json();
+
+    const container = document.getElementById("meusKitsList");
+    container.innerHTML = "";
+
+    if (kits.length === 0) {
+      container.innerHTML = `<div class="muted" style="padding:8px">Nenhum kit salvo no servidor.</div>`;
+      return;
+    }
+
+    kits.forEach(kit => {
+      const div = document.createElement("div");
+      div.className = "kit-row";
+
+      div.innerHTML = `
+        <div>${kit.nome}</div>
+        <div>
+          <button class="icon-btn" title="Ver" onclick='verKitMongo("${kit._id}")'>🔍</button>
+          <button class="icon-btn" title="Excluir" onclick='excluirKitMongo("${kit._id}")'>🗑️</button>
+        </div>
+      `;
+
+      container.appendChild(div);
+    });
+
+    // 🔥 IMPORTANTE: atualiza o select da aba AGENDAR
+    popularKitsNoAgendamento(kits);
+
+  } catch (err) {
+    console.error("Erro ao carregar kits:", err);
+  }
+}
+
+function popularKitsNoAgendamento(kits) {
+  const kitSelect = document.getElementById("kitSelect");
+  if (!kitSelect) return;
+
+  kitSelect.innerHTML = `
+    <option value="">Selecione um kit (opcional)</option>
+    <option value="__padrao_kit_reagentes">Kit Reagentes</option>
+    <option value="__padrao_kit_montagem">Kit Montagem</option>
+  `;
+
+  kits.forEach(kit => {
+    kitSelect.innerHTML += `<option value="${kit._id}">${kit.nome}</option>`;
+  });
+}
+
+
+/* Modal para visualizar kit vindo do MongoDB */
+async function verKitMongo(id) {
+  const res = await fetch(`http://localhost:3000/kits/kit/${id}`);
+  const kit = await res.json();
+
+  document.getElementById("kitModalTitle").textContent = kit.nome;
+  document.getElementById("kitModalContent").innerHTML =
+    kit.items.map(i => `<div>${i.name} — ${i.qtySelected} ${i.unit}</div>`).join("");
+
+  document.getElementById("modalEditKitBtn").onclick = () => {
+    closeModal("kitModalBackdrop");
+    abrirModalBuilder(null, kit._id);
+  };
+
+  showModal("kitModalBackdrop");
+}
+
+
+
+/* Excluir kit do MongoDB */
+async function excluirKitMongo(id) {
+  if (!confirm("Remover este kit?")) return;
+  try {
+    await fetch(`http://localhost:3000/kits/${id}`, { method: "DELETE" });
+    alert("Kit removido!");
+    carregarKitsDoProfessor();
+  } catch (err) {
+    console.error("Erro ao excluir kit:", err);
+  }
+}
+
+
+
+function renderMeusAgendamentos() {
+  const meusAgsBody = document.getElementById('meusAgs');
+  const totalApptsEl = document.getElementById('totalAppts');
+  meusAgsBody.innerHTML = '';
+
+  const apptsMap = JSON.parse(localStorage.getItem('appts') || '{}');
+
+  // Ordena por data e hora
+  const arr = Object.values(apptsMap).sort((a, b) =>
+    (a.date || '').localeCompare(b.date || '') ||
+    (a.time || '').localeCompare(b.time || '')
+  );
+
+  if (arr.length === 0) {
+    meusAgsBody.innerHTML =
+      '<tr><td colspan="5" class="muted">Nenhum agendamento.</td></tr>';
+    totalApptsEl.textContent = '0';
+    return;
+  }
+
+  arr.forEach(appt => {
+    const tr = document.createElement('tr');
+    const [ano, mes, dia] = (appt.date || '').split('-');
+
+    // Data
+    const tdData = document.createElement('td');
+    tdData.textContent = dia ? `${dia}/${mes}/${ano}` : '—';
+    tdData.style.padding = '10px';
+    tr.appendChild(tdData);
+
+    // Hora
+    const tdHora = document.createElement('td');
+    tdHora.textContent = appt.time || '—';
+    tdHora.style.padding = '10px';
+    tr.appendChild(tdHora);
+
+    // Laboratório
+    const tdLab = document.createElement('td');
+    tdLab.textContent = appt.lab || '—';
+    tdLab.style.padding = '10px';
+    tr.appendChild(tdLab);
+
+    // Status (badge idêntico ao técnico)
+    const status = appt.status || 'Pendente';
+    const tdStatus = document.createElement('td');
+    const badge = document.createElement('span');
+    badge.textContent = status;
+    badge.style.cssText = `
+      display:inline-block;padding:4px 10px;border-radius:6px;
+      font-weight:600;font-size:12px;min-width:85px;text-align:center;
+      border:1px solid rgba(0,0,0,0.1);box-shadow:0 1px 2px rgba(0,0,0,0.08);
+      background:${status === 'Separado' ? 'rgba(46,204,113,0.15)' : 'rgba(231,76,60,0.15)'};
+      color:${status === 'Separado' ? '#27ae60' : '#c0392b'};
+      border-color:${status === 'Separado' ? 'rgba(39,174,96,0.3)' : 'rgba(192,57,43,0.3)'}
+    `;
+    tdStatus.appendChild(badge);
+    tdStatus.style.padding = '10px';
+    tr.appendChild(tdStatus);
+
+    // Ações
+    const tdAcoes = document.createElement('td');
+    tdAcoes.style.cssText = `
+      padding:10px;
+      display:flex;
+      align-items:center;
+      gap:6px;
+      justify-content:flex-start;
+    `;
+
+    // 🔍 Ver detalhes
+    const btnVer = document.createElement('button');
+    btnVer.className = 'action-btn';
+    btnVer.textContent = '🔍';
+    btnVer.title = 'Ver detalhes';
+    btnVer.onclick = () => openApptModal(appt.id);
+
+    // 🧪 Editar kit
+    const btnEditar = document.createElement('button');
+    btnEditar.className = 'action-btn';
+    btnEditar.textContent = '🧪';
+    btnEditar.title = 'Editar kit';
+    btnEditar.onclick = () => openApptModal(appt.id);
+
+    // 💬 Observação do técnico
+    const btnObs = document.createElement('button');
+    btnObs.className = 'action-btn';
+    btnObs.textContent = '💬';
+    btnObs.title = 'Ver observação do técnico';
+    btnObs.onclick = () => {
+      const appts = JSON.parse(localStorage.getItem('appts') || '{}');
+      const a = appts[appt.id];
+      const msg = a && a.observacaoTecnico
+        ? a.observacaoTecnico
+        : '(Nenhuma observação registrada)';
+      mostrarModalObs(msg);
+    };
+
+    // 🗑️ Cancelar — com metade do espaço lateral
+    const btnCancelar = document.createElement('button');
+    btnCancelar.className = 'action-btn';
+    btnCancelar.textContent = '🗑️';
+    btnCancelar.title = 'Cancelar';
+    btnCancelar.style.marginLeft = '25px'; // 👈 metade do espaço anterior
+    btnCancelar.onclick = () => cancelAppt(appt.id);
+
+    // botão EDITAR AGENDAMENTO
+const btnEditAg = document.createElement('button');
+btnEditAg.className = 'action-btn';
+btnEditAg.textContent = '✏️';
+btnEditAg.title = 'Editar agendamento';
+btnEditAg.onclick = () => abrirEditorAgendamento(appt._id);
+
+tdAcoes.append(btnVer, btnEditar, btnObs, btnEditAg, btnCancelar);
+
+    tr.appendChild(tdAcoes);
+
+    meusAgsBody.appendChild(tr);
+  });
+
+  totalApptsEl.textContent = arr.length;
+}
+
+// 🔹 Modal de observação do técnico
+function mostrarModalObs(texto) {
+  let modal = document.getElementById('modalObsTecnico');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'modalObsTecnico';
+    modal.style.cssText = `
+      position:fixed;inset:0;display:flex;align-items:center;justify-content:center;
+      background:rgba(0,0,0,0.45);z-index:999;`;
+    modal.innerHTML = `
+      <div style="background:#fff;border-radius:10px;padding:18px;max-width:500px;width:90%;
+                  box-shadow:0 8px 30px rgba(0,0,0,0.25);">
+        <h3 style="margin-bottom:8px;">💬 Observação do Técnico</h3>
+        <div id="textoObsTecnico" style="white-space:pre-wrap;color:#333;
+             background:#fafafa;border:1px solid #eee;border-radius:6px;
+             padding:10px;min-height:60px;"></div>
+        <div style="margin-top:12px;display:flex;justify-content:flex-end;">
+          <button id="fecharObsTecnico" 
+            style="padding:6px 14px;border:none;background:#b20000;color:#fff;
+                   border-radius:6px;cursor:pointer;">Fechar</button>
+        </div>
+      </div>`;
+    document.body.appendChild(modal);
+    modal.addEventListener('click', ev => {
+      if (ev.target === modal) modal.style.display = 'none';
+    });
+    modal.querySelector('#fecharObsTecnico').onclick = () => (modal.style.display = 'none');
+  }
+  modal.querySelector('#textoObsTecnico').textContent = texto;
+  modal.style.display = 'flex';
+}
+
+// 🔁 Atualiza automaticamente ao sincronizar
+window.addEventListener('storage', (event) => {
+  if (['appts', 'agendamentos'].includes(event.key)) {
+    renderMeusAgendamentos();
+  }
+});
+
+/* ===== CARREGAR MEUS AGENDAMENTOS (corrigido) ===== */
+async function carregarAgendamentosProfessor() {
+  try {
+    const usuario = JSON.parse(sessionStorage.getItem('currentUser'));
+    if (!usuario || !usuario.nome) {
+      alert("Usuário não logado — faça login novamente.");
+      return;
+    }
+
+    const res = await fetch('http://localhost:3000/agendamentos');
+    if (!res.ok) throw new Error('Falha ao buscar agendamentos');
+    const todos = await res.json();
+
+    // Filtra apenas os do professor logado
+    const meus = todos.filter(a =>
+      (a.professor && a.professor.toLowerCase() === usuario.nome.toLowerCase()) ||
+      (a.email && a.email.toLowerCase() === usuario.email?.toLowerCase())
+    );
+
+    const tbody = document.querySelector('#tabelaMeusAgendamentos tbody');
+    if (!tbody) return;
+    tbody.innerHTML = '';
+
+    if (meus.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;color:#777">
+        Nenhum agendamento encontrado.
+      </td></tr>`;
+      return;
+    }
+
+    meus.forEach(a => {
+      const dataFmt = a.data
+        ? new Date(a.data).toLocaleDateString('pt-BR')
+        : '—';
+
+      const tr = document.createElement('tr');
+
+      // CRIA CÉLULA DO STATUS (AGORA IGUAL AO TÉCNICO)
+      const statusCell = document.createElement("td");
+
+      const badge = document.createElement("span");
+      const status = a.status || "Pendente";
+      badge.textContent = status;
+
+      // LAYOUT do Técnico
+      badge.style.cssText = `
+        display:inline-block;
+        padding:5px 12px;
+        border-radius:8px;
+        font-weight:600;
+        font-size:13px;
+        min-width:95px;
+        text-align:center;
+        border:1px solid rgba(0,0,0,0.1);
+        box-shadow:0 1px 2px rgba(0,0,0,0.08);
+      `;
+
+      // CORES DO Técnico
+      if (status === "Separado") {
+        badge.style.background = "rgba(46,204,113,0.15)";
+        badge.style.color = "#27ae60";
+        badge.style.borderColor = "rgba(39,174,96,0.3)";
+      } else {
+        // pendente e outros
+        badge.style.background = "rgba(231,76,60,0.15)";
+        badge.style.color = "#c0392b";
+        badge.style.borderColor = "rgba(192,57,43,0.3)";
+      }
+
+      statusCell.appendChild(badge);
+
+      tr.innerHTML = `
+        <td>${dataFmt}</td>
+        <td>${a.hora || '-'}</td>
+        <td>${a.laboratorio || '-'}</td>
+      `;
+
+      tr.appendChild(statusCell);
+
+      // AÇÕES
+      const tdAcoes = document.createElement("td");
+      tdAcoes.style.display = "flex";
+      tdAcoes.style.gap = "8px";
+
+      tdAcoes.innerHTML = `
+        <button class="btn btn-ghost" onclick="abrirEditorAgendamento('${a._id}')">✏️</button>
+        <button class="btn btn-ghost" onclick="cancelarAgendamento('${a._id}')">Cancelar</button>
+      `;
+
+      tr.appendChild(tdAcoes);
+
+      tbody.appendChild(tr);
+    });
+  } catch (err) {
+    console.error('Erro ao carregar agendamentos:', err);
+    alert('Erro ao carregar seus agendamentos.');
+  }
+}
+
+/* ===== Cancelar agendamento ===== */
+async function cancelarAgendamento(id) {
+  if (!confirm('Deseja realmente cancelar este agendamento?')) return;
+  try {
+    await fetch(`http://localhost:3000/agendamentos/${id}`, { method: 'DELETE' });
+    alert('Agendamento cancelado com sucesso!');
+    carregarAgendamentosProfessor();
+  } catch (err) {
+    console.error("Erro ao cancelar agendamento:", err);
+    alert("Falha ao cancelar agendamento.");
+  }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  carregarAgendamentosProfessor();
+});
+
+
+  </script>
+
+
+<script>
+/* ========== API BRIDGE (inject) ========== */
+const API_BASE = 'http://localhost:3000';
+
+async function syncFromServer() {
+  try {
+    // fetch common collections
+    const [usuariosRes, materiaisRes, problemasRes, agendamentosRes] = await Promise.all([
+      fetch(API_BASE + '/usuarios'),
+      fetch(API_BASE + '/materiais'),
+      fetch(API_BASE + '/problemas'),
+      fetch(API_BASE + '/agendamentos')
+    ]);
+    const usuarios = await usuariosRes.json();
+    const materiais = await materiaisRes.json();
+    const problemas = await problemasRes.json();
+    const agendamentos = await agendamentosRes.json();
+    // set localStorage keys expected by your frontend
+    localStorage.setItem('usuarios', JSON.stringify(usuarios));
+    localStorage.setItem('materiais', JSON.stringify(materiais));
+    localStorage.setItem('problemas', JSON.stringify(problemas));
+    // older code expects appts and agendamentos structures; set appts as map by id
+    const appts = {};
+    agendamentos.forEach(a => { appts[a._id] = a; });
+    localStorage.setItem('appts', JSON.stringify(appts));
+    localStorage.setItem('agendamentos', JSON.stringify(agendamentos));
+    console.log('[bridge] synced from server');
+    // call optional renderers if present
+    if(window.renderUsuarios) try{ window.renderUsuarios(JSON.parse(localStorage.getItem('usuarios'))); }catch(e){}
+    if(window.renderMateriais) try{ window.renderMateriais(); }catch(e){}
+    if(window.renderProblemas) try{ window.renderProblemas(); }catch(e){}
+    if(window.renderCurrentTab) try{ window.renderCurrentTab(); }catch(e){}
+    if(window.gerarCalendario) try{ window.gerarCalendario(window.mesAtual || new Date().getMonth(), window.anoAtual || new Date().getFullYear()); }catch(e){}
+  } catch(err) {
+    console.error('[bridge] erro ao sincronizar:', err);
+  }
+}
+
+// override login to use server users
+async function fazerLogin() {
+  try {
+    const tipo = (document.getElementById('tipo')?document.getElementById('tipo').value: null) || (document.querySelector('#tipo')?document.querySelector('#tipo').value: null);
+    const login = (document.getElementById('login')?document.getElementById('login').value.trim(): (document.getElementById('perfilEmail')?document.getElementById('perfilEmail').value.trim():''));
+    const senha = (document.getElementById('senha')?document.getElementById('senha').value.trim():'');
+    const resultado = document.getElementById('resultado');
+    if(!login || !senha) { if(resultado){ resultado.style.display='block'; resultado.style.color='red'; resultado.textContent='Preencha todos os campos.';} return; }
+    const res = await fetch(API_BASE + '/usuarios');
+    const usuarios = await res.json();
+    const usuario = usuarios.find(u => u.email === login && u.senha === senha && u.funcao === tipo);
+    if(!usuario) {
+      if(resultado){ resultado.style.display='block'; resultado.style.color='red'; resultado.textContent='Usuário não cadastrado ou dados incorretos.'; }
+      return;
+    }
+    sessionStorage.setItem('currentUser', JSON.stringify(usuario));
+    if(resultado){ resultado.style.display='block'; resultado.style.color='green'; resultado.textContent=`Login bem-sucedido como ${tipo}.`; }
+    // small delay then redirect
+    setTimeout(()=> {
+      if(tipo === 'Administrador') window.location.href = 'Administrador.html';
+      else if(tipo === 'Professor') window.location.href = 'professor.html';
+      else window.location.href = 'Tecnico.html';
+    }, 600);
+  } catch(e){
+    console.error('fazerLogin error', e);
+  }
+}
+
+// override adicionarUsuario
+async function adicionarUsuario() {
+  try {
+    const nome = (document.getElementById('novoNome')?document.getElementById('novoNome').value.trim():'');
+    const email = (document.getElementById('novoEmail')?document.getElementById('novoEmail').value.trim():'');
+    const senha = (document.getElementById('novoSenha')?document.getElementById('novoSenha').value.trim():'');
+    const func = (document.getElementById('novoFunc')?document.getElementById('novoFunc').value:'Professor');
+    const materia = func==='Professor' ? (document.getElementById('novoMateria')?document.getElementById('novoMateria').value.trim():'') : '';
+    if(!nome||!email||!senha) return alert('Preencha todos os campos');
+    await fetch(API_BASE + '/usuarios', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({nome,email,senha,funcao:func,materia}) });
+    await syncFromServer();
+    if(document.getElementById('novoNome')){ document.getElementById('novoNome').value=''; document.getElementById('novoEmail').value=''; document.getElementById('novoSenha').value=''; }
+    alert('Usuário adicionado (servidor).');
+  } catch(e){ console.error('adicionarUsuario', e); alert('Erro ao adicionar usuário'); }
+}
+
+// override adicionarMaterial
+async function adicionarMaterial() {
+  try {
+    const nome = (document.getElementById('novoMaterialNome')?document.getElementById('novoMaterialNome').value.trim():'');
+    const qtd = parseFloat((document.getElementById('novoMaterialQtd')?document.getElementById('novoMaterialQtd').value:'0')) || 0;
+    const un = (document.getElementById('novoMaterialUn')?document.getElementById('novoMaterialUn').value.trim():'un');
+    const tipo = (document.getElementById('novoMaterialTipo')?document.getElementById('novoMaterialTipo').value:'Vidraria');
+    if(!nome) return alert('Informe o nome do material');
+    await fetch(API_BASE + '/materiais', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({nome,quantidade:qtd,unidade:un,tipo})});
+    await syncFromServer();
+    if(document.getElementById('novoMaterialNome')){ document.getElementById('novoMaterialNome').value=''; document.getElementById('novoMaterialQtd').value=''; document.getElementById('novoMaterialUn').value=''; }
+    alert('Material adicionado (servidor).');
+  } catch(e){ console.error('adicionarMaterial', e); alert('Erro ao adicionar material'); }
+}
+
+// override reportarProblema
+async function reportarProblema() {
+  try {
+    const descricao = (document.getElementById('descricaoProblema')?document.getElementById('descricaoProblema').value.trim():'');
+    const tecnico = (document.getElementById('tecnicoNome')?document.getElementById('tecnicoNome').value.trim(): 'Técnico');
+    if(!descricao) return alert('Descreva o problema');
+    await fetch(API_BASE + '/problemas', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({descricao, tecnico, status:'Pendente'})});
+    await syncFromServer();
+    if(document.getElementById('descricaoProblema')) document.getElementById('descricaoProblema').value='';
+    alert('Problema reportado (servidor).');
+  } catch(e){ console.error('reportarProblema', e); alert('Erro ao reportar problema'); }
+}
+
+// override criarAgendamento
+/* ===== CRIAR AGENDAMENTO (com verificação no MongoDB) ===== */
+/* ===== CRIAR AGENDAMENTO (MongoDB + kit) ===== */
+async function criarAgendamento() {
+  const hora = document.getElementById('agHora').value;
+  const lab = document.getElementById('labSelect').value;
+  const materiais = document.getElementById('materiaisAg').value.trim();
+  const kitId = document.getElementById("kitSelect").value || null;
+  const usuario = JSON.parse(sessionStorage.getItem('currentUser'));
+
+  if (!dataSelecionada) return alert('Selecione um dia.');
+  if (!hora) return alert('Selecione um horário.');
+  if (!lab) return alert('Selecione um laboratório.');
+  if (!usuario || !usuario.nome) return alert('Usuário não logado.');
+
+  try {
+    // 1️⃣ buscar conflitos
+    const res = await fetch('http://localhost:3000/agendamentos');
+    const todos = await res.json();
+
+    const conflito = todos.some(a =>
+      a.laboratorio === lab &&
+      a.data === dataSelecionada &&
+      a.hora === hora
+    );
+
+    if (conflito) {
+      alert('Já existe um agendamento neste horário!');
+      return;
+    }
+
+    // 2️⃣ criar novo agendamento
+    const novo = {
+      laboratorio: lab,
+      data: dataSelecionada,
+      hora,
+      professor: usuario.nome,
+      materiais: materiais ? [materiais] : [],
+      status: "Pendente",
+      kitId: kitId   // 🔥 AGORA SALVA NO MONGO
+    };
+
+    const criar = await fetch('http://localhost:3000/agendamentos', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(novo)
+    });
+
+    if (!criar.ok) throw new Error("Erro ao criar");
+
+    alert("Agendamento criado!");
+    carregarAgendamentosProfessor();
+    showScreen("meusAgendamentos");
+
+  } catch (err) {
+    console.error(err);
+    alert("Erro ao criar agendamento.");
+  }
+}
+
+async function salvarResolucao(problemaId, resolucaoText) {
+  try {
+    const id = problemaId || (document.getElementById('currentProblemaId')?document.getElementById('currentProblemaId').value:null);
+    const text = resolucaoText || document.getElementById('inputResolucao')?document.getElementById('inputResolucao').value:'';
+    if(!id) return alert('Problema não identificado');
+    await fetch(API_BASE + '/problemas/' + id, { method:'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify({resolucao: text, status: 'Resolvido'})});
+    await syncFromServer();
+    alert('Problema marcado como resolvido (servidor).');
+  } catch(e){ console.error('salvarResolucao', e); alert('Erro ao salvar resolução'); }
+}
+
+// initial sync
+document.addEventListener('DOMContentLoaded', async () => {
+  await syncFromServer();      // mantém sincronização geral
+  await carregarKitsDoProfessor();
+
+});
+
+async function editarKitDoAgendamento(agendamentoId, kitId) {
+  if (!kitId) {
+    alert("Este agendamento não tem kit para editar.");
+    return;
+  }
+
+  // abre na aba de kits
+  showScreen("kits");
+
+  // busca kit do Mongo
+  const res = await fetch(`http://localhost:3000/kits/kit/${kitId}`);
+  const kit = await res.json();
+
+  // carrega no builder
+  tempKit = kit.items.map(i => ({ ...i }));
+  editingKitId = kit._id;
+  kitNameInput.value = kit.nome;
+
+  renderKitPreview();
+
+  // quando salvar kit → atualiza agendamento
+  const btn = document.getElementById("btnSaveKit");
+  btn.onclick = async () => {
+    await salvarKitEditado(agendamentoId);
+  };
+
+  closeModal("apptModalBackdrop");
+}
+
+async function salvarKitEditado(agendamentoId) {
+  const nome = kitNameInput.value.trim();
+
+  const body = {
+    nome,
+    professor: JSON.parse(sessionStorage.getItem("currentUser")).nome,
+    items: tempKit
+  };
+
+  // salva kit editado
+  const res = await fetch(`http://localhost:3000/kits/${editingKitId}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body)
+  });
+
+  await res.json();
+
+  // atualiza agendamento para usar o kit atualizado
+  await fetch(`http://localhost:3000/agendamentos/${agendamentoId}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ kitId: editingKitId })
+  });
+
+  alert("Kit atualizado e sincronizado com o agendamento!");
+
+  carregarKitsDoProfessor();
+  carregarAgendamentosProfessor();
+  showScreen("meusAgendamentos");
+}
+async function abrirEditorAgendamento(id) {
+  try {
+    const res = await fetch(`http://localhost:3000/agendamentos/${id}`);
+    if (!res.ok) throw new Error(await res.text());
+    const ag = await res.json();
+
+    const agId = ag._id || ag.id || id;
+    const dataVal = ag.data || '-';
+    const horaVal = ag.hora || '-';
+    const labVal = ag.laboratorio || '-';
+    const materiaisVal = ag.materiais?.length ? ag.materiais.join(', ') : (ag.materiais || '-');
+    const kitIdRaw = ag.kitId || ag.kit?.id || null;
+
+    let oldModal = document.getElementById("modalEditarAg");
+    if (oldModal) oldModal.remove();
+
+    const modal = document.createElement("div");
+    modal.id = "modalEditarAg";
+    modal.style = `
+      position:fixed; inset:0;
+      background: rgba(0,0,0,0.45);
+      display:flex; align-items:center; justify-content:center;
+      z-index:9999;
+    `;
+    modal.innerHTML = `
+      <div style="
+        background:#fff; padding:20px; border-radius:10px;
+        width:600px; max-width:95%;
+        box-shadow:0 12px 40px rgba(0,0,0,0.25);
+        display:flex; flex-direction:column;
+      ">
+        <h2 style="margin-top:0;">Editar Agendamento</h2>
+        <div><strong>Data:</strong> ${dataVal}</div>
+        <div><strong>Hora:</strong> ${horaVal}</div>
+        <div><strong>Laboratório:</strong> ${labVal}</div>
+        <div><strong>Materiais:</strong> ${materiaisVal}</div>
+        <hr />
+        <div id="areaKitInfo"><em>Carregando kit...</em></div>
+        <div style="display:flex;gap:8px;margin-top:12px;">
+          <button id="btnTrocarKit" class="btn btn-ghost">🔁 Trocar Kit</button>
+          <button id="btnFecharModalEditar" class="btn btn-ghost" style="margin-left:auto">Fechar</button>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(modal);
+
+    document.getElementById('btnFecharModalEditar').onclick = () => modal.remove();
+    const areaKit = document.getElementById('areaKitInfo');
+
+    async function mostrarKitAtual(kitId) {
+      if (!kitId) return areaKit.innerHTML = `<div><strong>Kit atual:</strong> (nenhum)</div>`;
+      try {
+        const kres = await fetch(`http://localhost:3000/kits/kit/${kitId}`);
+        if (!kres.ok) throw new Error('Kit não encontrado');
+        const kit = await kres.json();
+
+        const itemsHtml = kit.items.length
+          ? kit.items.map(it => `<div>${it.name} — ${it.qtySelected} ${it.unit||''}</div>`).join('')
+          : '<div class="muted">(sem itens)</div>';
+
+        areaKit.innerHTML = `
+          <div><strong>Kit atual:</strong> ${kit.nome}</div>
+          <div style="margin-top:8px">${itemsHtml}</div>
+          <div style="margin-top:10px;display:flex;gap:8px;">
+            <button id="btnEditarKit" class="btn btn-ghost">✏️ Editar Kit</button>
+          </div>
+        `;
+
+        document.getElementById('btnEditarKit').onclick = () => {
+          abrirModalBuilder(agId, kit._id);
+          modal.remove();
+        };
+      } catch(e) {
+        console.error('Erro ao buscar kit:', e);
+        areaKit.innerHTML = `<div class="muted">Erro ao carregar kit. Veja console.</div>`;
+      }
+    }
+
+    await mostrarKitAtual(kitIdRaw);
+
+    document.getElementById('btnTrocarKit').onclick = () => abrirTrocarKit(agId, areaKit, kitIdRaw);
+
+  } catch (err) {
+    console.error('Erro abrirEditorAgendamento:', err);
+    alert('Erro ao abrir editor. Veja console.');
+  }
+}
+async function abrirModalBuilder(agendamentoId, kitId) {
+  try {
+    // Carrega o kit
+    const res = await fetch(`http://localhost:3000/kits/kit/${kitId}`);
+    if (!res.ok) throw new Error("Kit não encontrado");
+    const kit = await res.json();
+
+    // Remove modal antigo
+    const old = document.getElementById("modalBuilder");
+    if (old) old.remove();
+
+    // Criar modal
+    const modal = document.createElement("div");
+    modal.id = "modalBuilder";
+    modal.style = `
+      position:fixed; inset:0; background:rgba(0,0,0,.5);
+      display:flex; align-items:center; justify-content:center; z-index:2000;
+    `;
+
+    modal.innerHTML = `
+      <div style="background:#fff; padding:20px; border-radius:10px; width:650px;">
+        <h2>Editar Kit: ${kit.nome}</h2>
+
+        <div id="itensBuilder" style="max-height:300px; overflow:auto; margin-bottom:10px;"></div>
+
+        <div style="display:flex; gap:10px;">
+          <select id="selectNovoMaterial" style="flex:2; padding:6px;"></select>
+          <input id="inputQtdNovoMaterial" type="number" placeholder="Qtd" style="flex:1; padding:6px;">
+          <button id="btnAdicionarMaterial" class="btn btn-primary">+</button>
+        </div>
+
+        <div style="text-align:right; margin-top:15px;">
+          <button id="btnSalvarBuilder" class="btn btn-primary">Salvar</button>
+          <button id="btnFecharBuilder" class="btn btn-ghost">Fechar</button>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(modal);
+
+    const itensDiv = document.getElementById("itensBuilder");
+
+    // ======== CARREGAR MATERIAIS DO BD ========
+    const matRes = await fetch(`http://localhost:3000/materiais`);
+    const materiais = await matRes.json();
+
+    const selectNovoMaterial = document.getElementById("selectNovoMaterial");
+    selectNovoMaterial.innerHTML = `<option value="">Selecione</option>`;
+    materiais.forEach(m => {
+      const op = document.createElement("option");
+      op.value = m._id;
+      op.textContent = `${m.nome} (${m.unidade})`;
+      selectNovoMaterial.appendChild(op);
+    });
+
+    // ======== FUNÇÃO PARA CRIAR LINHA ========
+    function criarLinhaItem(item) {
+      const linha = document.createElement("div");
+      linha.className = "linhaItem";
+
+      linha.dataset.id = item._id || item.id;
+      linha.dataset.unit = item.unit;
+      linha.dataset.name = item.name;
+
+      linha.style = "display:flex; gap:8px; margin-bottom:8px;";
+      linha.innerHTML = `
+        <div style="flex:2;">${item.name}</div>
+        <input type="number" class="itemQtd" value="${item.qtySelected}" style="flex:1; padding:6px;">
+        <div style="flex:1;">${item.unit}</div>
+        <button class="btnRemover">🗑️</button>
+      `;
+
+      linha.querySelector(".btnRemover").onclick = () => linha.remove();
+      itensDiv.appendChild(linha);
+    }
+
+    // ======== CARREGAR ITENS DO KIT ========
+    kit.items.forEach(i => criarLinhaItem(i));
+
+    // ==========================================================
+    // ADICIONAR MATERIAL COM VERIFICAÇÃO DE ESTOQUE
+    // ==========================================================
+    document.getElementById("btnAdicionarMaterial").onclick = () => {
+      const id = selectNovoMaterial.value;
+      const qtd = Number(document.getElementById("inputQtdNovoMaterial").value);
+
+      if (!id) return alert("Selecione um material.");
+      if (!qtd || qtd <= 0) return alert("Quantidade inválida.");
+
+      const mat = materiais.find(m => m._id === id);
+
+      // 🔥 Busca estoque real
+      const estoqueTotal =
+        mat.quantidade || mat.qtd || mat.qty || mat.amount || 0;
+
+      // 🔥 Verifica se excede o estoque
+      if (qtd > estoqueTotal) {
+        return alert(
+          `Quantidade indisponível! Estoque disponível: ${estoqueTotal}`
+        );
+      }
+
+      // 🔥 Verifica se o item já está no kit
+      const existente = Array.from(itensDiv.querySelectorAll(".linhaItem"))
+        .find(div => div.dataset.id === id);
+
+      if (existente) {
+        const input = existente.querySelector(".itemQtd");
+        const novaQtd = Number(input.value) + qtd;
+
+        if (novaQtd > estoqueTotal) {
+          return alert(
+            `Quantidade total excede o estoque! Máximo permitido: ${estoqueTotal}`
+          );
+        }
+
+        input.value = novaQtd;
+        document.getElementById("inputQtdNovoMaterial").value = "";
+        return;
+      }
+
+      // Criar nova linha
+      criarLinhaItem({
+        _id: mat._id,
+        name: mat.nome,
+        unit: mat.unidade,
+        qtySelected: qtd
+      });
+
+      selectNovoMaterial.value = "";
+      document.getElementById("inputQtdNovoMaterial").value = "";
+    };
+
+    // ==========================================================
+    // SALVAR ALTERAÇÕES DO KIT
+    // ==========================================================
+    document.getElementById("btnSalvarBuilder").onclick = async () => {
+      const updated = [];
+
+      itensDiv.querySelectorAll(".linhaItem").forEach(div => {
+        const qtd = Number(div.querySelector(".itemQtd").value);
+        if (qtd > 0) {
+          updated.push({
+            _id: div.dataset.id,
+            name: div.dataset.name,
+            unit: div.dataset.unit,
+            qtySelected: qtd
+          });
+        }
+      });
+
+      await fetch(`http://localhost:3000/kits/${kitId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          nome: kit.nome,
+          professor: kit.professor,
+          items: updated
+        })
+      });
+
+      alert("Kit atualizado!");
+      modal.remove();
+      carregarAgendamentosProfessor();
+    };
+
+    // Fechar modal
+    document.getElementById("btnFecharBuilder").onclick = () => modal.remove();
+
+  } catch (e) {
+    console.error(e);
+    alert("Erro ao abrir builder.");
+  }
+}
+
+async function abrirTrocarKit(agendamentoId, sectionArea, kitIdAtual = null) {
+  sectionArea.innerHTML = '<div class="muted">Carregando kits...</div>';
+
+  try {
+    const currentUser = JSON.parse(sessionStorage.getItem("currentUser"));
+    if (!currentUser?.nome) throw new Error("Usuário não logado");
+
+    // Rota correta
+    const res = await fetch(
+      `http://localhost:3000/kits/prof/${encodeURIComponent(currentUser.nome)}`
+    );
+    if (!res.ok) throw new Error("Erro ao buscar kits");
+
+    const kits = await res.json();
+
+    // Encontra o kit atual
+    const kitAtualObj = kits.find(k => k._id === kitIdAtual);
+
+    sectionArea.innerHTML = `
+      <div style="margin-bottom:10px;font-size:15px;">
+        <label><strong>Selecionar kit:</strong></label>
+        <select id="selectKitParaAg" 
+                style="width:100%;padding:6px;border-radius:6px;border:1px solid #ccc;font-size:14px;">
+          <option value="">(Nenhum)</option>
+          ${kits
+            .map(
+              k =>
+                `<option value="${k._id}" ${
+                  k._id === kitIdAtual ? "selected" : ""
+                }>${k.nome}</option>`
+            )
+            .join("")}
+        </select>
+      </div>
+
+      <div id="infoKitSelect" style="background:#f7f7f7;padding:10px;border-radius:6px;border:1px solid #ddd;">
+        ${
+          kitAtualObj
+            ? `
+            <div><strong>Kit atual:</strong> ${kitAtualObj.nome}</div>
+            <ul style="margin-top:6px;padding-left:20px;">
+              ${kitAtualObj.items
+                .map(i => `<li>${i.qtySelected}× ${i.name} (${i.unit})</li>`)
+                .join("")}
+            </ul>
+          `
+            : "<em>Nenhum kit selecionado.</em>"
+        }
+      </div>
+
+      <div style="display:flex;justify-content:flex-end;margin-top:12px;gap:8px;">
+        <button id="btnSalvarKitEscolhido" class="btn btn-primary" style="padding:6px 12px;">
+          Salvar
+        </button>
+      </div>
+    `;
+
+    const selectKit = document.getElementById("selectKitParaAg");
+    const infoArea = document.getElementById("infoKitSelect");
+
+    // Atualiza visualização quando trocar o select
+    selectKit.onchange = () => {
+      const sel = selectKit.value;
+      const k = kits.find(x => x._id === sel);
+
+      if (!k) {
+        infoArea.innerHTML = "<em>Nenhum kit selecionado.</em>";
+        return;
+      }
+
+      infoArea.innerHTML = `
+        <div><strong>Kit selecionado:</strong> ${k.nome}</div>
+        <ul style="margin-top:6px;padding-left:20px;">
+          ${k.items
+            .map(i => `<li>${i.qtySelected}× ${i.name} (${i.unit})</li>`)
+            .join("")}
+        </ul>
+      `;
+    };
+
+    // SALVAR
+    document.getElementById("btnSalvarKitEscolhido").onclick = async () => {
+      const novoKitId = selectKit.value || null;
+
+      const putRes = await fetch(
+        `http://localhost:3000/agendamentos/${agendamentoId}`,
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ kitId: novoKitId })
+        }
+      );
+
+      if (!putRes.ok) throw new Error("Erro ao salvar kit");
+
+      alert("Kit do agendamento atualizado!");
+      carregarAgendamentosProfessor();
+    };
+  } catch (err) {
+    console.error("Erro ao carregar kits:", err);
+    sectionArea.innerHTML = `
+      <div class="muted">
+        Erro ao carregar kits.<br>
+        <button onclick="abrirTrocarKit('${agendamentoId}', document.querySelector('#sectionTrocarKit'), '${kitIdAtual}')">
+          Tentar novamente
+        </button>
+      </div>
+    `;
+  }
+}
+
+const URL_API = "http://localhost:3000";
+
+let professorLogado = JSON.parse(sessionStorage.getItem("currentUser") || "null");
+
+/* NORMALIZA FUNÇÃO (tira acento) */
+function normalizarFuncao(texto) {
+  return texto?.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+}
+
+/* =============================
+   CARREGAR PERFIL DO PROFESSOR
+============================= */
+async function carregarPerfilProf() {
+
+  if (!professorLogado) return;
+
+  if (normalizarFuncao(professorLogado.funcao) !== "professor") return;
+
+  try {
+    const res = await fetch(`${URL_API}/usuarios/${professorLogado._id}`);
+    const dados = await res.json();
+
+    professorLogado = dados;
+    sessionStorage.setItem("currentUser", JSON.stringify(dados));
+
+    document.getElementById("perfilNomeProf").textContent = dados.nome;
+    document.getElementById("perfilEmailProf").textContent = dados.email;
+
+    document.getElementById("perfilFotoProf").src =
+      dados.foto
+        ? `${URL_API}${dados.foto}?t=${new Date().getTime()}`
+        : "https://via.placeholder.com/150";
+
+  } catch (e) {
+    console.error("Erro ao carregar perfil:", e);
+  }
+}
+
+
+/* =============================
+   MODAL
+============================= */
+
+function abrirModalPerfilProf() {
+  document.getElementById("editPerfilNomeProf").value = professorLogado.nome;
+  document.getElementById("editPerfilEmailProf").value = professorLogado.email;
+  document.getElementById("modalPerfilProf").style.display = "flex";
+}
+
+function fecharModalPerfilProf() {
+  document.getElementById("modalPerfilProf").style.display = "none";
+}
+
+
+/* =============================
+   SALVAR PERFIL (COM FOTO)
+============================= */
+async function salvarPerfilEditadoProf() {
+
+  try {
+    const nome = document.getElementById("editPerfilNomeProf").value;
+    const email = document.getElementById("editPerfilEmailProf").value;
+    const foto = document.getElementById("editPerfilFotoProf").files[0];
+
+    const formData = new FormData();
+    formData.append("nome", nome);
+    formData.append("email", email);
+
+    if (foto) {
+      formData.append("foto", foto);
+    }
+
+    const res = await fetch(`${URL_API}/usuarios/${professorLogado._id}`, {
+      method: "PUT",
+      body: formData
+    });
+
+    if (!res.ok) {
+      alert("Erro ao salvar perfil");
+      return;
+    }
+
+    const atualizado = await res.json();
+
+    professorLogado = atualizado;
+    sessionStorage.setItem("currentUser", JSON.stringify(atualizado));
+
+    document.getElementById("perfilNomeProf").textContent = atualizado.nome;
+    document.getElementById("perfilEmailProf").textContent = atualizado.email;
+
+    if (atualizado.foto) {
+      document.getElementById("perfilFotoProf").src =
+        `${URL_API}${atualizado.foto}?t=${new Date().getTime()}`;
+    }
+
+    fecharModalPerfilProf();
+
+    alert("Perfil atualizado com sucesso!");
+
+setTimeout(()=>{
+  showScreen("perfil");
+}, 100);
+
+
+  } catch (e) {
+    console.error("Erro ao salvar perfil:", e);
+    alert("Erro ao salvar perfil");
+  }
+}
+
+
+/* =============================
+   AUTOMAÇÃO
+============================= */
+
+// Quando clicar na aba PERFIL
+document.querySelector('[data-screen="perfil"]').addEventListener("click", carregarPerfilProf);
+
+// Quando carregar a página
+window.addEventListener("DOMContentLoaded", carregarPerfilProf);
+
+
+
+
+</script>
+
+</body>
+</html>
+
